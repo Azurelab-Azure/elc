@@ -1,0 +1,19 @@
+{
+  "name": "指示灯动画规则",
+  "description": "指示灯亮灭动画规则",
+  "parameters": {
+    "onColor": "#34c759",
+    "offColor": "#86868b",
+    "glowRadius": 8
+  },
+  "logic": [
+    "检测指示灯状态",
+    "应用亮灭效果"
+  ],
+  "conditions": [
+    { "type": "state", "operator": "==", "value": "on" }
+  ],
+  "actions": [
+    { "type": "glow", "target": "indicator" }
+  ]
+}

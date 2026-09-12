@@ -1,0 +1,20 @@
+{
+  "name": "电流流动动画规则",
+  "description": "电流流动动画控制规则",
+  "parameters": {
+    "speed": 2,
+    "color": "#0071e3",
+    "dashLength": 8
+  },
+  "logic": [
+    "检测电流方向",
+    "生成流动路径",
+    "应用动画效果"
+  ],
+  "conditions": [
+    { "type": "current", "operator": ">", "value": 0 }
+  ],
+  "actions": [
+    { "type": "animate", "target": "wire" }
+  ]
+}

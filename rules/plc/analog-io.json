@@ -1,0 +1,22 @@
+{
+  "name": "模拟量IO规则",
+  "description": "PLC 模拟量输入输出规则",
+  "parameters": {
+    "inputRange": [0, 10],
+    "outputRange": [0, 10],
+    "resolution": 12
+  },
+  "logic": [
+    "采集模拟量输入",
+    "AD 转换",
+    "数据处理",
+    "DA 转换",
+    "输出模拟量"
+  ],
+  "conditions": [
+    { "type": "analog", "operator": ">=", "value": 0 }
+  ],
+  "actions": [
+    { "type": "set", "target": "analogOutput" }
+  ]
+}

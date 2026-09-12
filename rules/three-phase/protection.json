@@ -1,0 +1,26 @@
+{
+  "name": "保护规则",
+  "description": "三相电保护规则",
+  "parameters": {
+    "overVoltage": 420,
+    "underVoltage": 340,
+    "overCurrent": 10,
+    "phaseLossDelay": 0.5
+  },
+  "logic": [
+    "检测三相电压",
+    "检测三相电流",
+    "判断是否缺相",
+    "判断是否过压",
+    "判断是否欠压"
+  ],
+  "conditions": [
+    { "type": "voltage", "operator": ">", "value": 420 },
+    { "type": "voltage", "operator": "<", "value": 340 },
+    { "type": "current", "operator": ">", "value": 10 }
+  ],
+  "actions": [
+    { "type": "open", "target": "KM" },
+    { "type": "alarm", "target": "buzzer" }
+  ]
+}

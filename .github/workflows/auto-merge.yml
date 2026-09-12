@@ -1,0 +1,34 @@
+name: Auto Merge Beta to Main
+
+on:
+  push:
+    branches: [beta]
+  workflow_dispatch:
+
+jobs:
+  merge:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Setup Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+      
+      - name: Merge beta into main
+        run: |
+          git checkout main
+          git merge beta --no-ff -m "chore: auto-merge from beta"
+          git push origin main
+      
+      - name: Generate catalog
+        run: |
+          npm ci
+          npm run generate-catalog
+          git add data/catalog.json
+          git commit -m "chore: update catalog.json" || true
+          git push origin main

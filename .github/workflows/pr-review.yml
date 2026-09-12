@@ -1,0 +1,42 @@
+name: PR Auto Review
+
+on:
+  pull_request:
+    branches: [main, beta]
+    types: [opened, synchronize, reopened]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Run validation
+        run: npm run validate
+      
+      - name: Check file naming
+        run: |
+          echo "Checking file naming conventions..."
+          # 检查文件名是否包含中文、空格或以数字开头
+          find beta -type f -name "*[一-龥]*" && exit 1 || true
+          find beta -type f -name "* *" && exit 1 || true
+          find beta -type f -name "[0-9]*" && exit 1 || true
+      
+      - name: Lint
+        run: npm run lint
+      
+      - name: Type check
+        run: npx vue-tsc --noEmit
+      
+      - name: Test
+        run: npm run test

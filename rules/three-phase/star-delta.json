@@ -1,0 +1,27 @@
+{
+  "name": "星三角启动规则",
+  "description": "星三角降压启动控制规则",
+  "parameters": {
+    "starTime": 5,
+    "deltaTime": 0.1,
+    "ratedVoltage": 380,
+    "starVoltage": 220
+  },
+  "logic": [
+    "按下启动按钮",
+    "KM1 主接触器闭合",
+    "KM2 星形接触器闭合",
+    "电机星形启动",
+    "延时 5 秒",
+    "KM2 断开",
+    "KM3 三角形接触器闭合",
+    "电机三角形运行"
+  ],
+  "conditions": [
+    { "type": "timer", "operator": ">=", "value": 5 }
+  ],
+  "actions": [
+    { "type": "open", "target": "KM2" },
+    { "type": "close", "target": "KM3" }
+  ]
+}

@@ -1,0 +1,139 @@
+/* ===== 浅色模式（默认） ===== */
+:root,
+:root[data-theme='light'] {
+  /* 品牌色 */
+  --color-blue: #0071e3;
+  --color-blue-hover: #0077ed;
+  --color-blue-soft: rgba(0, 113, 227, 0.1);
+  --color-red: #ff3b30;
+  --color-orange: #ff9500;
+  --color-green: #34c759;
+  --color-purple: #af52de;
+  --color-indigo: #5856d6;
+
+  /* 层级背景 */
+  --bg-level-0: #f5f5f7;       /* 页面 */
+  --bg-level-1: #ffffff;       /* 卡片/面板 */
+  --bg-level-2: #fafafa;       /* 嵌套卡片/输入框 */
+  --bg-level-3: #f0f0f2;       /* 更深一层 */
+  --bg-hover: #f5f5f7;
+  --bg-active: #e8e8ed;
+
+  /* 边框 */
+  --border-subtle: #f0f0f2;
+  --border-default: #e5e5ea;
+  --border-strong: #d1d1d6;
+
+  /* 文本 */
+  --text-primary: #1d1d1f;
+  --text-secondary: #6e6e73;
+  --text-tertiary: #86868b;
+  --text-quaternary: #a1a1a6;
+  --text-inverse: #ffffff;
+
+  /* 阴影（浅色下用阴影） */
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.03);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.05), 0 2px 4px rgba(0, 0, 0, 0.03);
+  --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.08), 0 4px 8px rgba(0, 0, 0, 0.04);
+  --shadow-xl: 0 20px 48px rgba(0, 0, 0, 0.1), 0 8px 16px rgba(0, 0, 0, 0.05);
+
+  /* 玻璃效果 */
+  --glass-bg: rgba(255, 255, 255, 0.72);
+  --glass-border: rgba(0, 0, 0, 0.06);
+  --glass-shadow: 0 2px 8px rgba(0, 0, 0, 0.04), 0 12px 32px rgba(0, 0, 0, 0.08);
+
+  /* 字体 */
+  --font-display: 'PingFang SC', -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', 'Microsoft YaHei', sans-serif;
+  --font-text: 'PingFang SC', -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', 'Microsoft YaHei', sans-serif;
+  --font-mono: 'SF Mono', 'PingFang SC', ui-monospace, 'Menlo', monospace;
+
+  /* 圆角 */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+  --radius-2xl: 28px;
+  --radius-pill: 980px;
+
+  /* 兼容旧变量 */
+  --color-gray-50: #f5f5f7;
+  --color-gray-100: #fafafa;
+  --color-gray-200: #e5e5ea;
+  --color-gray-300: #d1d1d6;
+  --color-gray-400: #a1a1a6;
+  --color-gray-500: #6e6e73;
+  --color-gray-600: #48484a;
+  --color-gray-700: #1d1d1f;
+  --color-gray-800: #000000;
+  --color-gray-900: #000000;
+
+  color-scheme: light;
+}
+
+/* ===== 深色模式 ===== */
+:root[data-theme='dark'] {
+  --color-blue: #0a84ff;
+  --color-blue-hover: #409cff;
+  --color-blue-soft: rgba(10, 132, 255, 0.15);
+  --color-red: #ff453a;
+  --color-orange: #ff9f0a;
+  --color-green: #30d158;
+  --color-purple: #bf5af2;
+  --color-indigo: #5e5ce6;
+
+  /* 层级背景 —— 每层只提升一点点 */
+  --bg-level-0: #000000;       /* 页面 */
+  --bg-level-1: #1c1c1e;       /* 卡片/面板 */
+  --bg-level-2: #2c2c2e;       /* 嵌套 */
+  --bg-level-3: #3a3a3c;       /* 更深一层 */
+  --bg-hover: #2c2c2e;
+  --bg-active: #3a3a3c;
+
+  /* 边框 */
+  --border-subtle: #2c2c2e;
+  --border-default: #38383a;
+  --border-strong: #48484a;
+
+  /* 文本 */
+  --text-primary: #f5f5f7;
+  --text-secondary: #98989d;
+  --text-tertiary: #8e8e93;
+  --text-quaternary: #636366;
+  --text-inverse: #1d1d1f;
+
+  /* 阴影（深色下几乎不用） */
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.6);
+  --shadow-xl: 0 20px 48px rgba(0, 0, 0, 0.7);
+
+  /* 玻璃效果 */
+  --glass-bg: rgba(28, 28, 30, 0.72);
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --glass-shadow: 0 2px 8px rgba(0, 0, 0, 0.5), 0 12px 32px rgba(0, 0, 0, 0.6);
+
+  /* 兼容旧变量 */
+  --color-gray-50: #000000;
+  --color-gray-100: #1c1c1e;
+  --color-gray-200: #2c2c2e;
+  --color-gray-300: #38383a;
+  --color-gray-400: #636366;
+  --color-gray-500: #8e8e93;
+  --color-gray-600: #98989d;
+  --color-gray-700: #f5f5f7;
+  --color-gray-800: #ffffff;
+  --color-gray-900: #ffffff;
+
+  color-scheme: dark;
+}
+
+/* 全局过渡 */
+html {
+  transition: background-color 0.25s ease;
+}
+
+html, body {
+  background: var(--bg-level-0);
+}

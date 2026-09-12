@@ -1,0 +1,25 @@
+{
+  "name": "电机启动规则",
+  "description": "三相电机直接启动控制规则",
+  "parameters": {
+    "ratedVoltage": 380,
+    "ratedCurrent": 5.5,
+    "startTime": 3,
+    "protectionDelay": 0.1
+  },
+  "logic": [
+    "合上 QS 隔离开关",
+    "按下 SB2 启动按钮",
+    "KM 线圈得电",
+    "KM 主触点闭合",
+    "电机启动"
+  ],
+  "conditions": [
+    { "type": "voltage", "operator": ">=", "value": 342 },
+    { "type": "current", "operator": "<=", "value": 38.5 }
+  ],
+  "actions": [
+    { "type": "close", "target": "KM" },
+    { "type": "start", "target": "M" }
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "name": "定时器规则",
+  "description": "PLC 定时器规则",
+  "parameters": {
+    "timeBase": 100,
+    "maxTimers": 256,
+    "presetRange": [1, 32767]
+  },
+  "logic": [
+    "定时器使能",
+    "计时开始",
+    "达到设定值",
+    "定时器输出"
+  ],
+  "conditions": [
+    { "type": "timer", "operator": ">=", "value": "preset" }
+  ],
+  "actions": [
+    { "type": "set", "target": "output" }
+  ]
+}

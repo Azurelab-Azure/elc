@@ -1,0 +1,22 @@
+{
+  "name": "变频控制规则",
+  "description": "变频器控制规则",
+  "parameters": {
+    "minFrequency": 0,
+    "maxFrequency": 50,
+    "accelerationTime": 10,
+    "decelerationTime": 10
+  },
+  "logic": [
+    "接收频率设定值",
+    "整流交流为直流",
+    "逆变直流为可调频率交流",
+    "控制电机转速"
+  ],
+  "conditions": [
+    { "type": "frequency", "operator": "<=", "value": 50 }
+  ],
+  "actions": [
+    { "type": "set", "target": "frequency" }
+  ]
+}

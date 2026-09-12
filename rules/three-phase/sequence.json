@@ -1,0 +1,20 @@
+{
+  "name": "相序规则",
+  "description": "三相电相序检测规则",
+  "parameters": {
+    "phaseAngle": 120,
+    "tolerance": 5
+  },
+  "logic": [
+    "检测三相电压过零点",
+    "计算相位差",
+    "判断相序正负"
+  ],
+  "conditions": [
+    { "type": "phaseAngle", "operator": "==", "value": 120 }
+  ],
+  "actions": [
+    { "type": "close", "target": "K" },
+    { "type": "open", "target": "K" }
+  ]
+}

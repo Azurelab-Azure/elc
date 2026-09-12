@@ -1,0 +1,146 @@
+/* 动画样式 */
+
+/* 淡入淡出 */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.fade-in {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+/* 滑入 */
+@keyframes slideInUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.slide-in-up {
+  animation: slideInUp 0.4s ease-out;
+}
+
+/* 缩放 */
+@keyframes scaleIn {
+  from {
+    transform: scale(0.9);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.scale-in {
+  animation: scaleIn 0.3s ease-out;
+}
+
+/* 脉冲 */
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.pulse {
+  animation: pulse 2s infinite;
+}
+
+/* 旋转 */
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.spin {
+  animation: spin 1s linear infinite;
+}
+
+/* 电流流动 */
+@keyframes flow {
+  from {
+    stroke-dashoffset: 0;
+  }
+  to {
+    stroke-dashoffset: -20;
+  }
+}
+
+/* 闪烁 */
+@keyframes blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+}
+
+.blink {
+  animation: blink 0.5s ease-in-out infinite;
+}
+
+/* 加载骨架 */
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.skeleton {
+  background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+/* 电机旋转 */
+@keyframes motorRotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.motor-running {
+  animation: motorRotate 0.5s linear infinite;
+}
+
+/* 指示灯 */
+@keyframes indicatorOn {
+  0%,
+  100% {
+    box-shadow: 0 0 20px rgba(239, 68, 68, 0.6);
+  }
+  50% {
+    box-shadow: 0 0 40px rgba(239, 68, 68, 0.9);
+  }
+}
+
+.indicator-on {
+  animation: indicatorOn 1s ease-in-out infinite;
+}
