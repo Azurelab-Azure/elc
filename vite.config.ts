@@ -10,19 +10,14 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src')
     }
   },
-  publicDir: 'public',
   server: {
     port: 5173,
-    host: true,
-    fs: {
-      allow: ['.']
-    }
+    host: true
   },
   build: {
-    rollupOptions: {
-      input: {
-        main: path.resolve(__dirname, 'index.html')
-      }
-    }
+    outDir: 'dist',
+    assetsDir: 'assets',
+    sourcemap: false,
+    chunkSizeWarningLimit: 1500
   }
 });
