@@ -117,7 +117,13 @@
           class="circuit-card"
         >
           <div class="circuit-thumb">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round">
+            <img
+              v-if="circuit.thumbnail"
+              :src="circuit.thumbnail"
+              :alt="circuit.name"
+              class="circuit-thumb-img"
+            />
+            <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M13 10V3L4 14h7v7l9-11h-7z"/>
             </svg>
           </div>

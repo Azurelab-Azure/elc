@@ -88,3 +88,10 @@
     @apply bg-red-100 text-red-800;
   }
 }
+
+.circuit-thumb-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}

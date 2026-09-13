@@ -185,6 +185,16 @@ textarea,
   margin-bottom: 60px;
 }
 
+.circuit-thumb-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+
+
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

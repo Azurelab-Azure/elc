@@ -43,7 +43,14 @@
           class="card"
         >
           <div class="card-thumb">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round">
+            <img
+              v-if="item.thumbnail"
+              :src="item.thumbnail"
+              :alt="item.name"
+              class="card-thumb-img"
+              @error="onImageError"
+            />
+            <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M13 10V3L4 14h7v7l9-11h-7z"/>
             </svg>
           </div>
@@ -93,6 +100,12 @@ const sortBy = ref('name');
 const currentPage = ref(1);
 const pageSize = 9;
 
+const onImageError = (e: Event) => {
+  const img = e.target as HTMLImageElement;
+  img.style.display = 'none';
+};
+
+
 const filteredCircuits = computed(() => {
   let result = circuits.value;
   if (selectedCategory.value !== 'all') {
@@ -129,6 +142,14 @@ onMounted(load);
   margin-bottom: 32px;
   flex-wrap: wrap;
 }
+
+.card-thumb-img {
+  width: 90%;
+  height: 90%;
+  object-fit: cover;
+  display: block;
+}
+
 
 .search {
   position: relative;

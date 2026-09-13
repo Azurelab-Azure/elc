@@ -1,367 +1,62 @@
 {
   "version": "1.0.0",
-  "updatedAt": "2026-09-11",
+  "updatedAt": "2026-09-13",
+
   "categories": [
     {
-      "id": "three-phase",
-      "name": "三相电",
-      "description": "电机控制、相序检测、变频调速",
-      "icon": "M13 10V3L4 14h7v7l9-11h-7z",
-      "color": "blue",
-      "path": "/three-phase",
-      "itemCount": 5
-    },
-    {
-      "id": "plc",
-      "name": "PLC",
-      "description": "梯形图、定时器、计数器",
-      "icon": "M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z",
-      "color": "purple",
-      "path": "/plc",
-      "itemCount": 5
-    },
-    {
-      "id": "basic",
-      "name": "基础电路",
-      "description": "欧姆定律、RC、RL、RLC",
-      "icon": "M13 10V3L4 14h7v7l9-11h-7z",
-      "color": "green",
-      "path": "/repository",
-      "itemCount": 5
-    },
-    {
-      "id": "advanced",
-      "name": "高级电路",
-      "description": "PWM、PID、SVPWM、电力电子",
-      "icon": "M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z",
-      "color": "orange",
-      "path": "/repository",
-      "itemCount": 4
+      "id": "",
+      "name": "",
+      "description": "",
+      "icon": "",
+      "color": "",
+      "path": "",
+      "itemCount": 0
     }
   ],
+
   "circuits": [
     {
-      "category": "three-phase",
-      "fileName": "motor-start",
-      "title": "三相电机直接启动",
-      "description": "三相异步电动机直接启动控制电路，包含主回路与控制回路",
-      "complexity": "初级",
-      "author": "社区",
-      "date": "2026-09-01",
-      "simulationRules": "three-phase-motor-start",
-      "thumbnail": "/beta/images/thumbnails/thumb_motor-start.png"
-    },
-    {
-      "category": "three-phase",
-      "fileName": "star-delta",
-      "title": "星三角降压启动",
-      "description": "经典星三角降压启动控制电路，降低启动电流",
-      "complexity": "中级",
-      "author": "社区",
-      "date": "2026-09-01",
-      "simulationRules": "three-phase-star-delta",
-      "thumbnail": "/beta/images/thumbnails/thumb_star-delta.png"
-    },
-    {
-      "category": "three-phase",
-      "fileName": "frequency-converter",
-      "title": "认识电阻",
-      "description": "电阻认识与测量电路，包含串联、并联与欧姆定律验证",
-      "complexity": "低级",
-      "author": "社区",
-      "date": "2026-09-02",
-      "simulationRules": "three-phase-frequency-control",
-      "thumbnail": "/beta/images/thumbnails/thumb_frequency-converter.png"
-    },
-    {
-      "category": "three-phase",
-      "fileName": "phase-sequence",
-      "title": "相序检测电路",
-      "description": "三相电源相序检测与保护电路",
-      "complexity": "中级",
-      "author": "社区",
-      "date": "2026-09-02",
-      "simulationRules": "three-phase-sequence",
-      "thumbnail": "/beta/images/thumbnails/thumb_phase-sequence.png"
-    },
-    {
-      "category": "three-phase",
-      "fileName": "reactive-power",
-      "title": "无功补偿电路",
-      "description": "三相无功功率补偿控制器电路",
-      "complexity": "高级",
-      "author": "社区",
-      "date": "2026-09-03",
-      "simulationRules": "three-phase-protection",
-      "thumbnail": "/beta/images/thumbnails/thumb_reactive-power.png"
-    },
-    {
-      "category": "plc",
-      "fileName": "conveyor-control",
-      "title": "传送带控制",
-      "description": "PLC控制传送带启停与顺序逻辑",
-      "complexity": "中级",
-      "author": "社区",
-      "date": "2026-09-03",
-      "simulationRules": "plc-ladder-logic",
-      "thumbnail": "/beta/images/thumbnails/thumb_conveyor-control.png"
-    },
-    {
-      "category": "plc",
-      "fileName": "traffic-light",
-      "title": "交通灯控制",
-      "description": "PLC定时器实现交通灯循环控制",
-      "complexity": "初级",
-      "author": "社区",
-      "date": "2026-09-04",
-      "simulationRules": "plc-timers",
-      "thumbnail": "/beta/images/thumbnails/thumb_traffic-light.png"
-    },
-    {
-      "category": "plc",
-      "fileName": "elevator-control",
-      "title": "电梯控制",
-      "description": "PLC实现多层电梯呼叫与楼层判断",
-      "complexity": "高级",
-      "author": "社区",
-      "date": "2026-09-04",
-      "simulationRules": "plc-ladder-logic",
-      "thumbnail": "/beta/images/thumbnails/thumb_elevator-control.png"
-    },
-    {
-      "category": "plc",
-      "fileName": "water-level",
-      "title": "水位控制",
-      "description": "PLC模拟量IO实现水位闭环控制",
-      "complexity": "中级",
-      "author": "社区",
-      "date": "2026-09-05",
-      "simulationRules": "plc-analog-io",
-      "thumbnail": "/beta/images/thumbnails/thumb_water-level.png"
-    },
-    {
-      "category": "plc",
-      "fileName": "sort-line",
-      "title": "分拣线控制",
-      "description": "PLC计数器实现物料分拣计数",
-      "complexity": "高级",
-      "author": "社区",
-      "date": "2026-09-05",
-      "simulationRules": "plc-counters",
-      "thumbnail": "/beta/images/thumbnails/thumb_sort-line.png"
-    },
-    {
       "category": "basic",
-      "fileName": "ohm-law",
-      "title": "欧姆定律验证",
-      "description": "电阻、电压、电流关系验证电路",
-      "complexity": "初级",
-      "author": "社区",
-      "date": "2026-09-06",
-      "simulationRules": "",
-      "thumbnail": "/beta/images/thumbnails/thumb_ohm-law.png"
-    },
-    {
-      "category": "basic",
-      "fileName": "rc-circuit",
-      "title": "RC充放电电路",
-      "description": "RC电路充放电特性与时间常数",
-      "complexity": "初级",
-      "author": "社区",
-      "date": "2026-09-06",
-      "simulationRules": "",
-      "thumbnail": "/beta/images/thumbnails/thumb_rc-circuit.png"
-    },
-    {
-      "category": "basic",
-      "fileName": "rl-circuit",
-      "title": "RL电路",
-      "description": "RL电路电流建立过程与电感特性",
-      "complexity": "初级",
-      "author": "社区",
-      "date": "2026-09-07",
-      "simulationRules": "",
-      "thumbnail": "/beta/images/thumbnails/thumb_rl-circuit.png"
-    },
-    {
-      "category": "basic",
-      "fileName": "rlc-series",
-      "title": "RLC串联谐振",
-      "description": "RLC串联电路谐振特性与品质因数",
+      "fileName": "单相电波形参数仿真器",
+      "title": "单相电波形参数仿真器",
+      "description": "一个用于仿真单相正弦交流电波形参数的工具",
       "complexity": "中级",
-      "author": "社区",
-      "date": "2026-09-07",
-      "simulationRules": "",
-      "thumbnail": "/beta/images/thumbnails/thumb_rlc-series.png"
-    },
-    {
-      "category": "basic",
-      "fileName": "diode-rectifier",
-      "title": "二极管整流",
-      "description": "半波、全波整流电路波形分析",
-      "complexity": "中级",
-      "author": "社区",
-      "date": "2026-09-08",
-      "simulationRules": "",
-      "thumbnail": "/beta/images/thumbnails/thumb_diode-rectifier.png"
-    },
-    {
-      "category": "advanced",
-      "fileName": "pwm-control",
-      "title": "PWM调光控制",
-      "description": "PWM脉宽调制实现LED亮度调节",
-      "complexity": "中级",
-      "author": "社区",
-      "date": "2026-09-08",
-      "simulationRules": "",
-      "thumbnail": "/beta/images/thumbnails/thumb_pwm-control.png"
-    },
-    {
-      "category": "advanced",
-      "fileName": "pid-controller",
-      "title": "PID温度控制",
-      "description": "PID算法实现温度闭环控制",
-      "complexity": "高级",
-      "author": "社区",
-      "date": "2026-09-09",
-      "simulationRules": "",
-      "thumbnail": "/beta/images/thumbnails/thumb_pid-controller.png"
-    },
-    {
-      "category": "advanced",
-      "fileName": "svpwm",
-      "title": "SVPWM空间矢量",
-      "description": "空间矢量脉宽调制算法实现",
-      "complexity": "高级",
-      "author": "社区",
-      "date": "2026-09-09",
-      "simulationRules": "",
-      "thumbnail": "/beta/images/thumbnails/thumb_svpwm.png"
-    },
-    {
-      "category": "advanced",
-      "fileName": "power-electronics",
-      "title": "电力电子变换",
-      "description": "DC-DC、AC-DC变换电路拓扑",
-      "complexity": "高级",
-      "author": "社区",
-      "date": "2026-09-10",
-      "simulationRules": "",
-      "thumbnail": "/beta/images/thumbnails/thumb_power-electronics.png"
+      "author": "Azure_Lab",
+      "date": "2026-09-13",
+      "thumbnail": "/beta/images/thumbnails/单相电波形参数仿真器.png",
+      "simulationRules": ""
     }
   ],
+
   "documents": [
     {
-      "category": "tutorials",
-      "fileName": "three-phase-basics",
-      "title": "三相电基础",
-      "description": "三相交流电的基本概念、相序、线电压与相电压",
-      "type": "教程",
-      "author": "社区",
-      "date": "2026-09-01",
-      "readTime": "10分钟"
-    },
-    {
-      "category": "tutorials",
-      "fileName": "plc-programming",
-      "title": "PLC编程入门",
-      "description": "梯形图编程语言基础与常用指令",
-      "type": "教程",
-      "author": "社区",
-      "date": "2026-09-02",
-      "readTime": "15分钟"
-    },
-    {
-      "category": "tutorials",
-      "fileName": "motor-control",
-      "title": "电机控制原理",
-      "description": "三相异步电动机控制电路设计与分析",
-      "type": "教程",
-      "author": "社区",
-      "date": "2026-09-03",
-      "readTime": "20分钟"
-    },
-    {
-      "category": "tutorials",
-      "fileName": "inverter-principle",
-      "title": "变频器原理",
-      "description": "变频调速技术原理与PWM调制",
-      "type": "教程",
-      "author": "社区",
-      "date": "2026-09-04",
-      "readTime": "12分钟"
-    },
-    {
-      "category": "tutorials",
-      "fileName": "relay-logic",
-      "title": "继电器逻辑",
-      "description": "继电器控制系统逻辑设计基础",
-      "type": "教程",
-      "author": "社区",
-      "date": "2026-09-05",
-      "readTime": "8分钟"
-    },
-    {
-      "category": "references",
-      "fileName": "iec-60947",
-      "title": "IEC 60947标准",
-      "description": "低压开关设备和控制设备标准摘要",
-      "type": "参考",
-      "author": "标准委员会",
-      "date": "2026-09-06",
-      "readTime": "30分钟"
-    },
-    {
-      "category": "references",
-      "fileName": "gb-t-14048",
-      "title": "GB/T 14048标准",
-      "description": "中国低压开关设备和控制设备标准",
-      "type": "参考",
-      "author": "标准委员会",
-      "date": "2026-09-06",
-      "readTime": "25分钟"
-    },
-    {
-      "category": "faq",
-      "fileName": "how-to-submit",
-      "title": "如何投稿",
-      "description": "投稿流程与文件格式要求",
-      "type": "FAQ",
-      "author": "社区",
-      "date": "2026-09-07",
-      "readTime": "3分钟"
-    },
-    {
-      "category": "faq",
-      "fileName": "how-to-use-simulator",
-      "title": "如何使用仿真器",
-      "description": "仿真器操作指南与常见操作",
-      "type": "FAQ",
-      "author": "社区",
-      "date": "2026-09-08",
-      "readTime": "5分钟"
-    },
-    {
-      "category": "faq",
-      "fileName": "how-to-export-exe",
-      "title": "如何打包EXE",
-      "description": "使用Electron Builder打包桌面应用",
-      "type": "FAQ",
-      "author": "社区",
-      "date": "2026-09-09",
-      "readTime": "8分钟"
-    },
-    {
-      "category": "faq",
-      "fileName": "troubleshooting",
-      "title": "常见问题",
-      "description": "使用过程中的常见问题与解决方案",
-      "type": "FAQ",
-      "author": "社区",
-      "date": "2026-09-10",
-      "readTime": "6分钟"
+      "category": "",
+      "fileName": "",
+      "title": "",
+      "description": "",
+      "type": "",
+      "author": "",
+      "date": "",
+      "readTime": ""
     }
   ],
-  "animations": [],
-  "images": []
+
+  "animations": [
+    {
+      "fileName": "",
+      "title": "",
+      "description": "",
+      "duration": 0,
+      "loop": true
+    }
+  ],
+
+  "images": [
+    {
+      "category": "",
+      "fileName": "",
+      "title": "",
+      "description": ""
+    }
+  ]
 }
