@@ -1,0 +1,62 @@
+{
+  "version": "1.0.0",
+  "updatedAt": "2026-09-13",
+
+  "categories": [
+    {
+      "id": "",
+      "name": "",
+      "description": "",
+      "icon": "",
+      "color": "",
+      "path": "",
+      "itemCount": 0
+    }
+  ],
+
+  "circuits": [
+    {
+      "category": "basic",
+      "fileName": "单相电波形参数仿真器",
+      "title": "单相电波形参数仿真器",
+      "description": "一个用于仿真单相正弦交流电波形参数的工具",
+      "complexity": "中级",
+      "author": "Azure_Lab",
+      "date": "2026-09-13",
+      "thumbnail": "/beta/images/thumbnails/单相电波形参数仿真器.png",
+      "simulationRules": ""
+    }
+  ],
+
+  "documents": [
+    {
+      "category": "",
+      "fileName": "",
+      "title": "",
+      "description": "",
+      "type": "",
+      "author": "",
+      "date": "",
+      "readTime": ""
+    }
+  ],
+
+  "animations": [
+    {
+      "fileName": "",
+      "title": "",
+      "description": "",
+      "duration": 0,
+      "loop": true
+    }
+  ],
+
+  "images": [
+    {
+      "category": "",
+      "fileName": "",
+      "title": "",
+      "description": ""
+    }
+  ]
+}
