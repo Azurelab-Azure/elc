@@ -25,6 +25,18 @@
       "date": "2026-09-13",
       "thumbnail": "/beta/images/thumbnails/单相电波形参数仿真器.png",
       "simulationRules": ""
+    },
+
+    {
+      "category": "basic",
+      "fileName": "认识电感器",
+      "title": "认识电感器",
+      "description": "电感器的有关概念教学",
+      "complexity": "中级",
+      "author": "Azure_Lab",
+      "date": "2026-09-14",
+      "thumbnail": "/beta/images/thumbnails/单相电波形参数仿真器.png",
+      "simulationRules": ""
     }
   ],
 
