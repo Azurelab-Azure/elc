@@ -1,0 +1,1192 @@
+<!DOCTYPE html>
+<html lang="zh-CN" class="scroll-smooth">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>低压断路器 · Azure Lab 2026</title>
+
+<!-- ============ 国内有效字体镜像 ============ -->
+<link rel="preconnect" href="https://cdn.jsdelivr.net">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/noto-serif-sc@5.0.0/index.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/noto-serif-sc@5.0.0/700.min.css">
+
+<!-- Tailwind -->
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = {
+  darkMode: 'class',
+  theme: {
+	extend: {
+	  fontFamily: {
+		serif: ['"Noto Serif SC"', '"Source Han Serif SC"', '"Songti SC"', '"SimSun"', 'Georgia', 'serif'],
+		mono: ['"Noto Serif SC"', '"Source Han Serif SC"', 'Georgia', 'serif'],
+	  },
+	  colors: {
+		azure: {
+		  50:'#eef6ff',100:'#d9ebff',200:'#bcdcff',300:'#8ec4ff',400:'#59a4ff',
+		  500:'#2f82ff',600:'#1663f0',700:'#0f4dd0',800:'#1141a8',900:'#133b85',
+		},
+		paper: {
+		  50:  '#fdfcfa',
+		  100: '#f8f5f0',
+		  200: '#efe9de',
+		  300: '#e2d9c9',
+		},
+		inkDeep: {
+		  50:  '#f5f5f7',
+		  100: '#e8e8ec',
+		  200: '#c8c8d0',
+		  300: '#8e8e98',
+		  400: '#5a5a64',
+		  500: '#2e2e34',
+		  600: '#1a1a1e',
+		  700: '#0f0f12',
+		}
+	  },
+	  boxShadow: {
+		'soft': '0 2px 20px -6px rgba(0,0,0,0.08), 0 1px 3px rgba(0,0,0,0.03)',
+		'glow': '0 0 0 1px rgba(47,130,255,0.15), 0 4px 20px -4px rgba(47,130,255,0.2)',
+		'capsule': '0 4px 24px -4px rgba(0,0,0,0.08), 0 2px 8px rgba(0,0,0,0.04)',
+	  },
+	  borderRadius: { '4xl': '2rem', '5xl': '2.5rem' }
+	}
+  }
+}
+</script>
+
+<style>
+  * {
+	transition-property: background-color, border-color, color, fill, stroke, opacity, box-shadow, transform, backdrop-filter;
+	transition-duration: .45s;
+	transition-timing-function: cubic-bezier(.25,.1,.25,1);
+  }
+  html { -webkit-tap-highlight-color: transparent; }
+  body {
+	font-family: 'Noto Serif SC', 'Source Han Serif SC', 'Songti SC', 'SimSun', Georgia, serif;
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+	font-feature-settings: 'kern' 1, 'liga' 1;
+	letter-spacing: 0.01em;
+	font-weight: 400;
+  }
+
+  /* ============================================================
+	 背景图体系 — 明暗双版
+	 浅色：晨雾暖阳宣纸感 · 深色：深夜星空墨蓝感
+	 ============================================================ */
+  .bg-layer {
+	position: fixed;
+	inset: 0;
+	z-index: -2;
+	pointer-events: none;
+	transition: opacity .6s cubic-bezier(.25,.1,.25,1);
+  }
+
+  /* 浅色背景：暖调渐变 + 光晕 */
+  .bg-light {
+	background:
+	  radial-gradient(ellipse 100% 70% at 12% 0%, rgba(255,235,205,0.55) 0%, transparent 55%),
+	  radial-gradient(ellipse 80% 60% at 92% 10%, rgba(200,220,255,0.50) 0%, transparent 55%),
+	  radial-gradient(ellipse 120% 80% at 50% 100%, rgba(220,235,255,0.45) 0%, transparent 60%),
+	  radial-gradient(ellipse 60% 50% at 30% 60%, rgba(255,225,235,0.35) 0%, transparent 60%),
+	  linear-gradient(165deg, #fefcf8 0%, #f8f4ec 40%, #eef2fa 100%);
+	opacity: 1;
+  }
+  .dark .bg-light { opacity: 0; }
+
+  /* 深色背景：墨蓝星空 + 冷光 */
+  .bg-dark {
+	background:
+	  radial-gradient(ellipse 100% 70% at 12% 0%, rgba(30,60,120,0.45) 0%, transparent 55%),
+	  radial-gradient(ellipse 80% 60% at 92% 10%, rgba(120,60,140,0.30) 0%, transparent 55%),
+	  radial-gradient(ellipse 120% 80% at 50% 100%, rgba(20,80,140,0.35) 0%, transparent 60%),
+	  radial-gradient(ellipse 60% 50% at 30% 60%, rgba(140,50,80,0.20) 0%, transparent 60%),
+	  linear-gradient(165deg, #07070c 0%, #0a0a14 40%, #080810 100%);
+	opacity: 0;
+  }
+  .dark .bg-dark { opacity: 1; }
+
+  /* 背景纹理层：细颗粒宣纸感 */
+  .bg-grain {
+	position: fixed;
+	inset: 0;
+	z-index: -1;
+	pointer-events: none;
+	opacity: 0.035;
+	background-image:
+	  repeating-linear-gradient(0deg, rgba(0,0,0,0.6) 0px, transparent 1px, transparent 2px, rgba(0,0,0,0.6) 3px),
+	  repeating-linear-gradient(90deg, rgba(0,0,0,0.4) 0px, transparent 1px, transparent 3px, rgba(0,0,0,0.4) 4px);
+	mix-blend-mode: multiply;
+  }
+  .dark .bg-grain { opacity: 0.06; mix-blend-mode: screen; }
+
+  /* ============================================================
+	 液态玻璃 —— 强化版
+	 ============================================================ */
+  .glass {
+	background: rgba(253,252,250,.65);
+	backdrop-filter: blur(28px) saturate(200%) brightness(1.02);
+	-webkit-backdrop-filter: blur(28px) saturate(200%) brightness(1.02);
+	border: 1px solid rgba(255,255,255,.65);
+	box-shadow:
+	  inset 0 1px 0 rgba(255,255,255,.9),
+	  inset 0 -1px 0 rgba(0,0,0,.02),
+	  0 1px 3px rgba(0,0,0,.02);
+  }
+  .dark .glass {
+	background: rgba(14,14,22,.60);
+	backdrop-filter: blur(28px) saturate(180%) brightness(0.95);
+	-webkit-backdrop-filter: blur(28px) saturate(180%) brightness(0.95);
+	border: 1px solid rgba(255,255,255,.07);
+	box-shadow:
+	  inset 0 1px 0 rgba(255,255,255,.06),
+	  inset 0 -1px 0 rgba(0,0,0,.3),
+	  0 1px 3px rgba(0,0,0,.2);
+  }
+
+  /* 液态玻璃 —— 卡片（3D层次） */
+  .card {
+	position: relative;
+	background: linear-gradient(160deg, rgba(255,255,255,.82) 0%, rgba(255,255,255,.62) 100%);
+	backdrop-filter: blur(24px) saturate(180%);
+	-webkit-backdrop-filter: blur(24px) saturate(180%);
+	border: 1px solid rgba(255,255,255,.75);
+	border-radius: 1.75rem;
+	box-shadow:
+	  0 1px 2px rgba(0,0,0,.02),
+	  0 4px 16px -4px rgba(0,0,0,.05),
+	  0 16px 40px -16px rgba(47,130,255,.08),
+	  inset 0 1px 0 rgba(255,255,255,.95),
+	  inset 0 -1px 0 rgba(0,0,0,.02);
+	transition: transform .4s cubic-bezier(.25,.1,.25,1), box-shadow .4s cubic-bezier(.25,.1,.25,1);
+  }
+  .dark .card {
+	background: linear-gradient(160deg, rgba(22,22,32,.72) 0%, rgba(14,14,22,.62) 100%);
+	border: 1px solid rgba(255,255,255,.06);
+	box-shadow:
+	  0 1px 2px rgba(0,0,0,.3),
+	  0 4px 16px -4px rgba(0,0,0,.4),
+	  0 16px 40px -16px rgba(47,130,255,.12),
+	  inset 0 1px 0 rgba(255,255,255,.05),
+	  inset 0 -1px 0 rgba(0,0,0,.4);
+  }
+
+  /* 卡片顶部高光边 */
+  .card::before {
+	content: '';
+	position: absolute;
+	top: 0; left: 10%; right: 10%;
+	height: 1px;
+	background: linear-gradient(90deg, transparent, rgba(255,255,255,.9), transparent);
+	border-radius: 999px;
+	pointer-events: none;
+  }
+  .dark .card::before {
+	background: linear-gradient(90deg, transparent, rgba(140,180,255,.25), transparent);
+  }
+
+  /* ============================================================
+	 底部胶囊任务栏 —— 液态玻璃强化
+	 ============================================================ */
+  .capsule-tabbar {
+	position: fixed;
+	bottom: 1.25rem;
+	left: 50%;
+	transform: translateX(-50%);
+	z-index: 50;
+	display: flex;
+	align-items: center;
+	gap: 0.25rem;
+	padding: 0.4rem;
+	border-radius: 9999px;
+	background: rgba(253,252,250,0.55);
+	backdrop-filter: blur(100px) saturate(220%) brightness(1.05);
+	-webkit-backdrop-filter: blur(100px) saturate(220%) brightness(1.05);
+	border: 1px solid rgba(255,255,255,0.85);
+	box-shadow:
+	  0 12px 48px -12px rgba(0,0,0,0.15),
+	  0 4px 16px -4px rgba(0,0,0,0.05),
+	  inset 0 1px 0 rgba(255,255,255,0.95),
+	  inset 0 -2px 8px rgba(0,0,0,0.02),
+	  0 0 0 1px rgba(255,255,255,0.4);
+	max-width: calc(100vw - 2rem);
+  }
+  .dark .capsule-tabbar {
+	background: rgba(14,14,22,0.55);
+	border: 1px solid rgba(255,255,255,0.10);
+	box-shadow:
+	  0 12px 48px -12px rgba(0,0,0,0.8),
+	  0 4px 16px -4px rgba(0,0,0,0.4),
+	  inset 0 1px 0 rgba(255,255,255,0.08),
+	  inset 0 -2px 8px rgba(0,0,0,0.4),
+	  0 0 0 1px rgba(140,180,255,0.06);
+  }
+
+  /* 偏光扫光 */
+  .capsule-tabbar::before {
+	content: '';
+	position: absolute;
+	inset: 0;
+	border-radius: 9999px;
+	background: linear-gradient(
+	  105deg,
+	  transparent 20%,
+	  rgba(255,255,255,0.55) 38%,
+	  rgba(255,255,255,0.20) 48%,
+	  transparent 68%
+	);
+	pointer-events: none;
+	mix-blend-mode: overlay;
+	opacity: 0.9;
+  }
+  .dark .capsule-tabbar::before {
+	background: linear-gradient(
+	  105deg,
+	  transparent 20%,
+	  rgba(140,180,255,0.14) 38%,
+	  rgba(140,180,255,0.06) 48%,
+	  transparent 68%
+	);
+  }
+
+  /* 底部反射光晕 */
+  .capsule-tabbar::after {
+	content: '';
+	position: absolute;
+	bottom: -14px;
+	left: 15%;
+	right: 15%;
+	height: 20px;
+	background: radial-gradient(ellipse at center, rgba(47,130,255,.18) 0%, transparent 70%);
+	filter: blur(10px);
+	pointer-events: none;
+	opacity: 0.7;
+  }
+  .dark .capsule-tabbar::after {
+	background: radial-gradient(ellipse at center, rgba(47,130,255,.35) 0%, transparent 70%);
+  }
+
+  /* 胶囊按钮 */
+  .capsule-btn {
+	position: relative;
+	z-index: 1;
+	display: flex;
+	align-items: center;
+	gap: 0.35rem;
+	padding: 0.55rem 1rem;
+	border-radius: 9999px;
+	font-family: 'Noto Serif SC', 'Source Han Serif SC', 'Songti SC', Georgia, serif;
+	font-size: 12px;
+	font-weight: 500;
+	letter-spacing: 0.02em;
+	color: rgba(46,46,52,0.5);
+	white-space: nowrap;
+	transition: all .45s cubic-bezier(.25,.1,.25,1);
+	cursor: pointer;
+  }
+  .dark .capsule-btn { color: rgba(200,200,208,0.5); }
+
+  .capsule-btn svg {
+	width: 15px;
+	height: 15px;
+	flex-shrink: 0;
+	opacity: 0.8;
+  }
+
+  .capsule-btn:hover {
+	color: rgba(46,46,52,0.85);
+	background: rgba(255,255,255,0.5);
+  }
+  .dark .capsule-btn:hover {
+	color: rgba(200,200,208,0.9);
+	background: rgba(255,255,255,0.05);
+  }
+
+  .capsule-btn.active {
+	color: #1663f0;
+	background: linear-gradient(180deg, rgba(47,130,255,0.14) 0%, rgba(47,130,255,0.08) 100%);
+	box-shadow:
+	  0 2px 12px -4px rgba(47,130,255,0.30),
+	  inset 0 1px 0 rgba(255,255,255,0.9),
+	  inset 0 -1px 0 rgba(47,130,255,0.10);
+  }
+  .dark .capsule-btn.active {
+	color: #8ec4ff;
+	background: linear-gradient(180deg, rgba(47,130,255,0.22) 0%, rgba(47,130,255,0.12) 100%);
+	box-shadow:
+	  0 2px 12px -4px rgba(47,130,255,0.45),
+	  inset 0 1px 0 rgba(255,255,255,0.10),
+	  inset 0 -1px 0 rgba(47,130,255,0.15);
+  }
+
+  /* ============================================================
+	 3D 视觉 —— 模型框架强化
+	 ============================================================ */
+  .model-frame {
+	position: relative;
+	border-radius: 1.5rem;
+	overflow: hidden;
+	background: #050508;
+	box-shadow:
+	  0 4px 12px -4px rgba(0,0,0,.3),
+	  0 24px 60px -20px rgba(0,0,0,.45),
+	  0 40px 100px -30px rgba(47,130,255,.15),
+	  inset 0 1px 0 rgba(255,255,255,.08);
+	border: 1px solid rgba(255,255,255,.08);
+	transform: perspective(1200px) rotateX(0.5deg);
+	transition: transform .6s cubic-bezier(.25,.1,.25,1), box-shadow .6s cubic-bezier(.25,.1,.25,1);
+  }
+  .model-frame:hover {
+	transform: perspective(1200px) rotateX(0deg) translateY(-2px);
+	box-shadow:
+	  0 8px 20px -4px rgba(0,0,0,.35),
+	  0 32px 80px -24px rgba(0,0,0,.5),
+	  0 50px 120px -40px rgba(47,130,255,.25),
+	  inset 0 1px 0 rgba(255,255,255,.12);
+  }
+  /* 模型底部环境光反射 */
+  .model-frame::after {
+	content: '';
+	position: absolute;
+	bottom: -1px; left: 20%; right: 20%;
+	height: 1px;
+	background: linear-gradient(90deg, transparent, rgba(47,130,255,.6), transparent);
+	filter: blur(0.5px);
+	pointer-events: none;
+  }
+
+  /* ============================================================
+	 滚动条
+	 ============================================================ */
+  ::-webkit-scrollbar { width: 4px; height: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: rgba(0,0,0,.12); border-radius: 2px; }
+  .dark ::-webkit-scrollbar-thumb { background: rgba(255,255,255,.12); }
+
+  /* ============================================================
+	 思维导图 —— 全新横向图谱
+	 ============================================================ */
+  .mindmap {
+	display: flex;
+	flex-direction: column;
+	gap: 0;
+	position: relative;
+	padding-left: 0.5rem;
+  }
+  .mind-node {
+	position: relative;
+	display: flex;
+	align-items: flex-start;
+	gap: 1.25rem;
+	padding: 0.9rem 0;
+  }
+  /* 左侧主轴 */
+  .mind-axis {
+	position: absolute;
+	left: 15px;
+	top: 0;
+	bottom: 0;
+	width: 1px;
+	background: linear-gradient(180deg,
+	  transparent 0%,
+	  rgba(47,130,255,.18) 8%,
+	  rgba(47,130,255,.18) 92%,
+	  transparent 100%);
+  }
+  .dark .mind-axis {
+	background: linear-gradient(180deg,
+	  transparent 0%,
+	  rgba(140,180,255,.20) 8%,
+	  rgba(140,180,255,.20) 92%,
+	  transparent 100%);
+  }
+  /* 节点圆点 */
+  .mind-dot {
+	position: relative;
+	flex-shrink: 0;
+	width: 31px;
+	height: 31px;
+	border-radius: 50%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-family: 'Noto Serif SC', serif;
+	font-size: 12px;
+	font-weight: 600;
+	color: #1663f0;
+	background: linear-gradient(160deg, #ffffff 0%, #f0f5ff 100%);
+	border: 1px solid rgba(47,130,255,.25);
+	box-shadow:
+	  0 2px 8px -2px rgba(47,130,255,.25),
+	  inset 0 1px 0 rgba(255,255,255,.9);
+	z-index: 2;
+	transition: all .4s cubic-bezier(.25,.1,.25,1);
+  }
+  .dark .mind-dot {
+	color: #8ec4ff;
+	background: linear-gradient(160deg, #1a1a28 0%, #12121c 100%);
+	border: 1px solid rgba(140,180,255,.3);
+	box-shadow:
+	  0 2px 8px -2px rgba(47,130,255,.4),
+	  inset 0 1px 0 rgba(255,255,255,.08);
+  }
+  .mind-node:hover .mind-dot {
+	transform: scale(1.1);
+	box-shadow:
+	  0 4px 16px -2px rgba(47,130,255,.45),
+	  inset 0 1px 0 rgba(255,255,255,.9);
+  }
+
+  /* 节点头部 */
+  .mind-header {
+	display: flex;
+	align-items: center;
+	gap: 0.75rem;
+	margin-bottom: 0.5rem;
+	cursor: pointer;
+  }
+  .mind-title {
+	font-family: 'Noto Serif SC', serif;
+	font-size: 15px;
+	font-weight: 600;
+	color: #1a1a1e;
+	letter-spacing: 0.01em;
+  }
+  .dark .mind-title { color: #e8e8ec; }
+
+  .mind-sub {
+	font-family: 'Noto Serif SC', serif;
+	font-size: 12px;
+	color: #8e8e98;
+	font-weight: 400;
+  }
+  .dark .mind-sub { color: #5a5a64; }
+
+  /* 内容卡片 */
+  .mind-body {
+	flex: 1;
+	min-width: 0;
+	padding: 0.75rem 1rem;
+	border-radius: 1rem;
+	background: rgba(255,255,255,.55);
+	backdrop-filter: blur(16px);
+	-webkit-backdrop-filter: blur(16px);
+	border: 1px solid rgba(255,255,255,.7);
+	box-shadow:
+	  inset 0 1px 0 rgba(255,255,255,.8),
+	  0 2px 8px -4px rgba(0,0,0,.04);
+	transition: all .4s cubic-bezier(.25,.1,.25,1);
+  }
+  .dark .mind-body {
+	background: rgba(22,22,32,.45);
+	border: 1px solid rgba(255,255,255,.06);
+	box-shadow:
+	  inset 0 1px 0 rgba(255,255,255,.05),
+	  0 2px 8px -4px rgba(0,0,0,.3);
+  }
+  .mind-body:hover {
+	background: rgba(255,255,255,.75);
+	box-shadow:
+	  inset 0 1px 0 rgba(255,255,255,.9),
+	  0 4px 16px -6px rgba(47,130,255,.15);
+  }
+  .dark .mind-body:hover {
+	background: rgba(22,22,32,.65);
+	box-shadow:
+	  inset 0 1px 0 rgba(255,255,255,.08),
+	  0 4px 16px -6px rgba(47,130,255,.25);
+  }
+
+  /* 标签块 */
+  .mind-tags {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.4rem;
+	margin-top: 0.5rem;
+  }
+  .mind-tag {
+	font-family: 'Noto Serif SC', serif;
+	font-size: 11.5px;
+	padding: 0.25rem 0.65rem;
+	border-radius: 999px;
+	background: rgba(47,130,255,.06);
+	color: #1663f0;
+	border: 1px solid rgba(47,130,255,.12);
+	transition: all .3s cubic-bezier(.25,.1,.25,1);
+  }
+  .dark .mind-tag {
+	background: rgba(47,130,255,.12);
+	color: #8ec4ff;
+	border-color: rgba(47,130,255,.2);
+  }
+  .mind-tag:hover {
+	background: rgba(47,130,255,.14);
+	transform: translateY(-1px);
+  }
+  .dark .mind-tag:hover {
+	background: rgba(47,130,255,.22);
+  }
+
+  /* ============================================================
+	 其它
+	 ============================================================ */
+  .chip {
+	display: inline-flex;
+	align-items: center;
+	padding: .15rem .6rem;
+	border-radius: 999px;
+	font-size: .7rem;
+	font-weight: 500;
+	letter-spacing: .02em;
+	background: rgba(47,130,255,.08);
+	color: #1663f0;
+	border: 1px solid rgba(47,130,255,.12);
+  }
+  .dark .chip {
+	background: rgba(47,130,255,.15);
+	color: #8ec4ff;
+	border-color: rgba(47,130,255,.2);
+  }
+
+  @keyframes fadeUp {
+	from { opacity:0; transform: translateY(10px); }
+	to   { opacity:1; transform: translateY(0); }
+  }
+  .fade-up { animation: fadeUp .6s cubic-bezier(.25,.1,.25,1) both; }
+
+  .tab-panel {
+	display: none;
+	opacity: 0;
+	transform: translateY(12px) scale(0.99);
+	transition: opacity .45s cubic-bezier(.25,.1,.25,1),
+				transform .45s cubic-bezier(.25,.1,.25,1);
+  }
+  .tab-panel.active {
+	display: block;
+	opacity: 1;
+	transform: translateY(0) scale(1);
+  }
+
+  .k-card {
+	position: relative;
+	transition: transform .4s cubic-bezier(.25,.1,.25,1), box-shadow .4s cubic-bezier(.25,.1,.25,1);
+	cursor: pointer;
+	overflow: hidden;
+  }
+  .k-card::after {
+	content: '';
+	position: absolute;
+	inset: 0;
+	border-radius: 1.75rem;
+	background: radial-gradient(circle at var(--mx,50%) var(--my,50%), rgba(47,130,255,.08) 0%, transparent 60%);
+	opacity: 0;
+	transition: opacity .4s cubic-bezier(.25,.1,.25,1);
+	pointer-events: none;
+  }
+  .k-card:hover::after { opacity: 1; }
+  .k-card:hover {
+	transform: translateY(-4px) scale(1.01);
+	box-shadow:
+	  0 4px 12px -4px rgba(0,0,0,.08),
+	  0 20px 50px -16px rgba(47,130,255,.20),
+	  inset 0 1px 0 rgba(255,255,255,.95);
+  }
+  .dark .k-card:hover {
+	box-shadow:
+	  0 4px 12px -4px rgba(0,0,0,.5),
+	  0 20px 50px -16px rgba(47,130,255,.35),
+	  inset 0 1px 0 rgba(255,255,255,.08);
+  }
+
+  .modal-overlay {
+	position: fixed;
+	inset: 0;
+	z-index: 100;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 1.5rem;
+	background: rgba(30,30,40,0.20);
+	backdrop-filter: blur(100px) saturate(180%);
+	-webkit-backdrop-filter: blur(100px) saturate(180%);
+	opacity: 0;
+	pointer-events: none;
+	transition: opacity .4s cubic-bezier(.25,.1,.25,1);
+  }
+  .dark .modal-overlay { background: rgba(0,0,0,0.45); }
+  .modal-overlay.open { opacity: 1; pointer-events: auto; }
+
+  .modal-content {
+	position: relative;
+	background: linear-gradient(160deg, rgba(255,255,255,.95) 0%, rgba(248,245,240,.92) 100%);
+	backdrop-filter: blur(28px);
+	-webkit-backdrop-filter: blur(28px);
+	border-radius: 2rem;
+	max-width: 540px;
+	width: 100%;
+	max-height: 80vh;
+	overflow-y: auto;
+	padding: 2rem;
+	box-shadow:
+	  0 32px 100px -20px rgba(0,0,0,.30),
+	  0 8px 24px -8px rgba(0,0,0,.10),
+	  inset 0 1px 0 rgba(255,255,255,.95);
+	border: 1px solid rgba(255,255,255,.85);
+	transform: scale(0.95) translateY(16px);
+	transition: transform .5s cubic-bezier(.25,.1,.25,1);
+  }
+  .dark .modal-content {
+	background: linear-gradient(160deg, rgba(22,22,32,.95) 0%, rgba(14,14,22,.92) 100%);
+	border: 1px solid rgba(255,255,255,.08);
+	box-shadow:
+	  0 32px 100px -20px rgba(0,0,0,.7),
+	  0 8px 24px -8px rgba(0,0,0,.4),
+	  inset 0 1px 0 rgba(255,255,255,.06);
+  }
+  .modal-overlay.open .modal-content { transform: scale(1) translateY(0); }
+
+  .sym {
+	font-family: 'Noto Serif SC', 'Source Han Serif SC', 'Songti SC', Georgia, serif;
+	font-weight: 600;
+	letter-spacing: 0.01em;
+	font-variant-numeric: oldstyle-nums;
+  }
+
+  .ink-strong { color: #1a1a1e; font-weight: 600; }
+  .dark .ink-strong { color: #e8e8ec; }
+
+  @media (prefers-reduced-motion: reduce) {
+	* { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+  }
+</style>
+</head>
+
+<body class="text-inkDeep-500 dark:text-inkDeep-100 min-h-screen antialiased selection:bg-azure-200 dark:selection:bg-azure-900">
+
+<!-- ========== 背景层（明暗双版） ========== -->
+<div class="bg-layer bg-light"></div>
+<div class="bg-layer bg-dark"></div>
+<div class="bg-grain"></div>
+
+<!-- 顶部导航栏 -->
+<header class="glass sticky top-0 z-50 px-4 sm:px-6 py-3.5 flex items-center justify-between border-b border-black/[0.04] dark:border-white/[0.06]">
+  <div class="flex items-center gap-3">
+	<div class="w-7 h-7 rounded-lg bg-gradient-to-br from-azure-400 to-azure-600 flex items-center justify-center shadow-glow">
+	  <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+		<path stroke-linecap="round" stroke-linejoin="round" d="M13 3v7h6l-7 11v-7H6l7-11z"/>
+	  </svg>
+	</div>
+	<div class="flex items-baseline gap-2.5">
+	  <span class="text-[16px] font-semibold tracking-tight" style="font-family:'Noto Serif SC','Source Han Serif SC',serif;">低压断路器</span>
+	  <span class="hidden sm:inline chip">Azure Lab 2026</span>
+	</div>
+  </div>
+  <div class="flex items-center gap-2">
+	<span class="hidden md:inline text-[11px] text-inkDeep-300 dark:text-inkDeep-400 font-medium" style="font-family:'Noto Serif SC','Source Han Serif SC',serif;">Elc电拖编辑小组</span>
+	<button id="theme-toggle" class="w-9 h-9 rounded-full flex items-center justify-center hover:bg-black/[0.04] dark:hover:bg-white/[0.06] active:scale-95" aria-label="切换主题">
+	  <svg class="w-[18px] h-[18px] dark:hidden" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+		<path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.4 6.4l-.7-.7M6.3 6.3l-.7-.7m12.7 0l-.7.7M6.3 17.7l-.7.7M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
+	  </svg>
+	  <svg class="w-[18px] h-[18px] hidden dark:block" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+		<path stroke-linecap="round" stroke-linejoin="round" d="M20.4 15.4A9 9 0 018.6 3.6 9 9 0 1012 21a9 9 0 008.4-5.6z"/>
+	  </svg>
+	</button>
+  </div>
+</header>
+
+<!-- 主内容区 -->
+<main class="max-w-[1440px] mx-auto px-4 sm:px-6 py-6 pb-32">
+
+  <!-- ===== 标签页 1：模型与符号 ===== -->
+  <div id="panel-1" class="tab-panel active">
+	<div class="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_400px] gap-6">
+	  <section class="space-y-6 min-w-0">
+		<div class="card p-3 sm:p-4 fade-up">
+		  <div class="flex items-center justify-between mb-3 px-1">
+			<div class="flex items-center gap-2.5">
+			  <span class="w-1 h-4 rounded-full bg-azure-500"></span>
+			  <h2 class="text-[15px] font-semibold tracking-tight" style="font-family:'Noto Serif SC','Source Han Serif SC',serif;">3D模型 · 低压断路器</h2>
+			</div>
+		  </div>
+		  <div class="model-frame bg-black aspect-[16/10]">
+			<iframe id="sketchfab-frame"
+			  title="YCB7-63N Miniature Circuit Breaker"
+			  frameborder="0" allowfullscreen mozallowfullscreen="true" webkitallowfullscreen="true"
+			  allow="autoplay; fullscreen; xr-spatial-tracking" xr-spatial-tracking
+			  execution-while-out-of-viewport execution-while-not-rendered web-share
+			  class="w-full h-full block"
+			  src="https://sketchfab.com/models/206c30923a754565af2eb980af575f7c/embed?ui_theme=dark&autospin=0.2&preload=1&ui_infos=0&ui_watermark=0">
+			</iframe>
+		  </div>
+		  <p class="text-[12px] text-inkDeep-300 dark:text-inkDeep-400 mt-2.5 px-1 leading-relaxed" style="font-family:'Noto Serif SC','Source Han Serif SC',serif;">
+			模型由 <span class="font-medium text-inkDeep-400 dark:text-inkDeep-200">cncelectric</span> 提供，仅作外观与结构认知。
+		  </p>
+		</div>
+
+		<div class="card p-5 sm:p-6 fade-up">
+		  <div class="flex items-center gap-2.5 mb-5">
+			<span class="w-1 h-4 rounded-full bg-emerald-500"></span>
+			<h2 class="text-[15px] font-semibold tracking-tight" style="font-family:'Noto Serif SC','Source Han Serif SC',serif;">图形符号与文字符号</h2>
+			<span class="text-[11px] text-inkDeep-300 dark:text-inkDeep-400 font-medium ml-auto" style="font-family:'Noto Serif SC','Source Han Serif SC',serif;">GB/T 16900</span>
+		  </div>
+		  <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+			<div class="rounded-2xl bg-white/50 dark:bg-white/[0.04] p-5 flex flex-col items-center justify-center min-h-[110px] hover:bg-white/70 dark:hover:bg-white/[0.06] border border-white/60 dark:border-white/[0.04]">
+			  <div class="text-[34px] font-semibold text-azure-500 sym leading-none">QF</div>
+			  <div class="text-[11px] mt-2.5 text-inkDeep-300 dark:text-inkDeep-400 font-medium" style="font-family:'Noto Serif SC','Source Han Serif SC',serif;">文字符号</div>
+			</div>
+			<div class="rounded-2xl bg-white/50 dark:bg-white/[0.04] p-5 flex flex-col items-center justify-center min-h-[110px] hover:bg-white/70 dark:hover:bg-white/[0.06] border border-white/60 dark:border-white/[0.04]">
+			  <svg width="52" height="40" viewBox="0 0 56 40" fill="none" stroke="currentColor" stroke-width="1.5" class="text-inkDeep-500 dark:text-inkDeep-200">
+				<rect x="8" y="6" width="40" height="28" rx="2.5"/>
+				<line x1="10" y1="8" x2="46" y2="32"/>
+				<line x1="46" y1="8" x2="10" y2="32"/>
+			  </svg>
+			  <div class="text-[11px] mt-2.5 text-inkDeep-300 dark:text-inkDeep-400 font-medium" style="font-family:'Noto Serif SC','Source Han Serif SC',serif;">断路器</div>
+			</div>
+			<div class="rounded-2xl bg-white/50 dark:bg-white/[0.04] p-5 flex flex-col items-center justify-center min-h-[110px] hover:bg-white/70 dark:hover:bg-white/[0.06] border border-white/60 dark:border-white/[0.04]">
+			  <svg width="52" height="40" viewBox="0 0 56 40" fill="none" stroke="currentColor" stroke-width="1.5" class="text-inkDeep-500 dark:text-inkDeep-200">
+				<line x1="4" y1="20" x2="14" y2="20"/><line x1="14" y1="20" x2="24" y2="10"/>
+				<circle cx="14" cy="20" r="1.8" fill="currentColor"/><circle cx="24" cy="20" r="1.8" fill="currentColor"/>
+				<line x1="24" y1="20" x2="34" y2="20"/><line x1="34" y1="20" x2="44" y2="10" stroke-dasharray="2 2.5" opacity="0.5"/>
+				<line x1="34" y1="20" x2="44" y2="20"/><line x1="44" y1="20" x2="52" y2="20"/>
+			  </svg>
+			  <div class="text-[11px] mt-2.5 text-inkDeep-300 dark:text-inkDeep-400 font-medium" style="font-family:'Noto Serif SC','Source Han Serif SC',serif;">单极断路器</div>
+			</div>
+			<div class="rounded-2xl bg-white/50 dark:bg-white/[0.04] p-5 flex flex-col items-center justify-center min-h-[110px] hover:bg-white/70 dark:hover:bg-white/[0.06] border border-white/60 dark:border-white/[0.04]">
+			  <svg width="52" height="44" viewBox="0 0 56 44" fill="none" stroke="currentColor" stroke-width="1.5" class="text-inkDeep-500 dark:text-inkDeep-200">
+				<line x1="4" y1="12" x2="14" y2="12"/><line x1="14" y1="12" x2="22" y2="6"/><line x1="22" y1="12" x2="32" y2="12"/><line x1="32" y1="12" x2="52" y2="12"/>
+				<line x1="4" y1="22" x2="14" y2="22"/><line x1="14" y1="22" x2="22" y2="16"/><line x1="22" y1="22" x2="32" y2="22"/><line x1="32" y1="22" x2="52" y2="22"/>
+				<line x1="4" y1="32" x2="14" y2="32"/><line x1="14" y1="32" x2="22" y2="26"/><line x1="22" y1="32" x2="32" y2="32"/><line x1="32" y1="32" x2="52" y2="32"/>
+				<line x1="24" y1="4" x2="24" y2="40" stroke-dasharray="2 3" opacity="0.5"/>
+			  </svg>
+			  <div class="text-[11px] mt-2.5 text-inkDeep-300 dark:text-inkDeep-400 font-medium" style="font-family:'Noto Serif SC','Source Han Serif SC',serif;">三极断路器</div>
+			</div>
+		  </div>
+		  <p class="text-[12px] text-inkDeep-300 dark:text-inkDeep-400 mt-4 leading-relaxed" style="font-family:'Noto Serif SC','Source Han Serif SC',serif;">
+			绘制规则：所有符号按 <span class="font-medium text-inkDeep-400 dark:text-inkDeep-200">未加电压、未受力状态</span> 绘制。
+		  </p>
+		</div>
+	  </section>
+
+	  <aside class="space-y-5">
+		<div class="card p-5 sm:p-6 fade-up">
+		  <div class="flex items-center gap-2.5 mb-4">
+			<span class="w-1 h-4 rounded-full bg-azure-500"></span>
+			<h2 class="text-[15px] font-semibold tracking-tight" style="font-family:'Noto Serif SC','Source Han Serif SC',serif;">核心考点速查</h2>
+		  </div>
+		  <dl class="text-[13px] space-y-3" style="font-family:'Noto Serif SC','Source Han Serif SC',serif;">
+			<div class="flex gap-3 items-start">
+			  <dt class="w-[68px] shrink-0 text-inkDeep-300 dark:text-inkDeep-400 font-medium">文字符号</dt>
+			  <dd class="sym text-azure-500 text-[16px] font-semibold">QF</dd>
+			</div>
+			<div class="flex gap-3 items-start">
+			  <dt class="w-[68px] shrink-0 text-inkDeep-300 dark:text-inkDeep-400 font-medium">核心功能</dt>
+			  <dd class="leading-relaxed">通断控制、过载保护、短路保护、欠压保护</dd>
+			</div>
+			<div class="flex gap-3 items-start">
+			  <dt class="w-[68px] shrink-0 text-inkDeep-300 dark:text-inkDeep-400 font-medium">结构组成</dt>
+			  <dd class="leading-relaxed">触头系统、灭弧系统、操作机构、脱扣器、外壳</dd>
+			</div>
+			<div class="flex gap-3 items-start">
+			  <dt class="w-[68px] shrink-0 text-inkDeep-300 dark:text-inkDeep-400 font-medium">脱扣器</dt>
+			  <dd class="leading-relaxed">过电流、热、欠电压、分励四类</dd>
+			</div>
+		  </dl>
+		</div>
+
+		<div class="card p-5 sm:p-6 fade-up">
+		  <div class="flex items-center gap-2.5 mb-4">
+			<span class="w-1 h-4 rounded-full bg-emerald-500"></span>
+			<h2 class="text-[15px] font-semibold tracking-tight" style="font-family:'Noto Serif SC','Source Han Serif SC',serif;">选择原则</h2>
+		  </div>
+		  <ul class="text-[13px] space-y-2.5" style="font-family:'Noto Serif SC','Source Han Serif SC',serif;">
+			<li class="flex gap-2.5 items-start"><span class="text-emerald-500 sym shrink-0 mt-0.5">①</span><span class="leading-relaxed">额定电压 ≥ 线路额定电压</span></li>
+			<li class="flex gap-2.5 items-start"><span class="text-emerald-500 sym shrink-0 mt-0.5">②</span><span class="leading-relaxed">额定电流 ≥ 负载计算电流</span></li>
+			<li class="flex gap-2.5 items-start"><span class="text-emerald-500 sym shrink-0 mt-0.5">③</span><span class="leading-relaxed">极限通断能力 ≥ 线路最大短路电流</span></li>
+			<li class="flex gap-2.5 items-start"><span class="text-emerald-500 sym shrink-0 mt-0.5">④</span><span class="leading-relaxed">脱扣器整定值与负载特性匹配</span></li>
+		  </ul>
+		</div>
+	  </aside>
+	</div>
+  </div>
+
+  <!-- ===== 标签页 2：思维导图（全新横向图谱） ===== -->
+  <div id="panel-2" class="tab-panel">
+	<div class="card p-5 sm:p-7 fade-up max-w-4xl mx-auto">
+	  <div class="flex items-center gap-2.5 mb-6">
+		<span class="w-1 h-4 rounded-full bg-amber-500"></span>
+		<h2 class="text-[15px] font-semibold tracking-tight" style="font-family:'Noto Serif SC','Source Han Serif SC',serif;">知识图谱 · 低压断路器知识体系</h2>
+		<span class="text-[11px] text-inkDeep-300 dark:text-inkDeep-400 font-medium ml-auto" style="font-family:'Noto Serif SC','Source Han Serif SC',serif;">六大模块</span>
+	  </div>
+
+	  <div class="mindmap relative">
+		<div class="mind-axis"></div>
+
+		<!-- 模块 01 -->
+		<div class="mind-node fade-up">
+		  <div class="mind-dot">01</div>
+		  <div class="mind-body">
+			<div class="mind-header">
+			  <h3 class="mind-title">定义与作用</h3>
+			  <span class="mind-sub">Definition</span>
+			</div>
+			<div class="mind-tags">
+			  <span class="mind-tag">俗称：自动空气开关</span>
+			  <span class="mind-tag">通断控制</span>
+			  <span class="mind-tag">过载保护</span>
+			  <span class="mind-tag">短路保护</span>
+			  <span class="mind-tag">欠压保护</span>
+			  <span class="mind-tag">低压配电核心电器</span>
+			</div>
+		  </div>
+		</div>
+
+		<!-- 模块 02 -->
+		<div class="mind-node fade-up">
+		  <div class="mind-dot">02</div>
+		  <div class="mind-body">
+			<div class="mind-header">
+			  <h3 class="mind-title">图形与文字符号</h3>
+			  <span class="mind-sub">Symbols</span>
+			</div>
+			<div class="mind-tags">
+			  <span class="mind-tag">文字符号：QF</span>
+			  <span class="mind-tag">矩形框 + 斜线 / ×</span>
+			  <span class="mind-tag">按未通电状态绘制</span>
+			  <span class="mind-tag">GB/T 16900</span>
+			</div>
+		  </div>
+		</div>
+
+		<!-- 模块 03 -->
+		<div class="mind-node fade-up">
+		  <div class="mind-dot">03</div>
+		  <div class="mind-body">
+			<div class="mind-header">
+			  <h3 class="mind-title">结构组成</h3>
+			  <span class="mind-sub">Structure</span>
+			</div>
+			<div class="mind-tags">
+			  <span class="mind-tag">触头系统</span>
+			  <span class="mind-tag">灭弧系统</span>
+			  <span class="mind-tag">操作机构</span>
+			  <span class="mind-tag">脱扣器</span>
+			  <span class="mind-tag">外壳</span>
+			</div>
+			<div class="mind-tags" style="margin-top:0.4rem;">
+			  <span class="mind-tag" style="background:rgba(47,130,255,.10);">过电流脱扣器</span>
+			  <span class="mind-tag" style="background:rgba(47,130,255,.10);">热脱扣器</span>
+			  <span class="mind-tag" style="background:rgba(47,130,255,.10);">欠电压脱扣器</span>
+			  <span class="mind-tag" style="background:rgba(47,130,255,.10);">分励脱扣器</span>
+			</div>
+		  </div>
+		</div>
+
+		<!-- 模块 04 -->
+		<div class="mind-node fade-up">
+		  <div class="mind-dot">04</div>
+		  <div class="mind-body">
+			<div class="mind-header">
+			  <h3 class="mind-title">工作原理</h3>
+			  <span class="mind-sub">Principle</span>
+			</div>
+			<div class="mind-tags">
+			  <span class="mind-tag">合闸：机构锁住主触头</span>
+			  <span class="mind-tag">短路：电磁脱扣瞬时动作</span>
+			  <span class="mind-tag">过载：双金属片延时动作</span>
+			  <span class="mind-tag">欠压：弹簧释放脱扣</span>
+			</div>
+		  </div>
+		</div>
+
+		<!-- 模块 05 -->
+		<div class="mind-node fade-up">
+		  <div class="mind-dot">05</div>
+		  <div class="mind-body">
+			<div class="mind-header">
+			  <h3 class="mind-title">选择原则</h3>
+			  <span class="mind-sub">Selection</span>
+			</div>
+			<div class="mind-tags">
+			  <span class="mind-tag">类型：塑壳 / 框架 / 限流</span>
+			  <span class="mind-tag">Ue ≥ 线路电压</span>
+			  <span class="mind-tag">In ≥ 计算电流</span>
+			  <span class="mind-tag">Icu ≥ 最大短路电流</span>
+			  <span class="mind-tag">整定值匹配负载</span>
+			</div>
+		  </div>
+		</div>
+
+		<!-- 模块 06 -->
+		<div class="mind-node fade-up">
+		  <div class="mind-dot">06</div>
+		  <div class="mind-body">
+			<div class="mind-header">
+			  <h3 class="mind-title">实操考点</h3>
+			  <span class="mind-sub">Practice</span>
+			</div>
+			<div class="mind-tags">
+			  <span class="mind-tag">万用表测通断</span>
+			  <span class="mind-tag">兆欧表测绝缘</span>
+			  <span class="mind-tag">原理图识读</span>
+			  <span class="mind-tag">控制线路安装调试</span>
+			  <span class="mind-tag">三相 36V 安全电压</span>
+			  <span class="mind-tag">工具无标识</span>
+			</div>
+		  </div>
+		</div>
+
+	  </div>
+	</div>
+  </div>
+
+  <!-- ===== 标签页 3：知识点卡片 ===== -->
+  <div id="panel-3" class="tab-panel">
+	<div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4" id="knowledge-grid"></div>
+  </div>
+
+</main>
+
+<!-- ===== 模态框 ===== -->
+<div id="modal-overlay" class="modal-overlay">
+  <div class="modal-content">
+	<div class="flex items-start justify-between mb-4">
+	  <div class="flex items-center gap-3">
+		<span id="modal-num" class="text-[13px] font-semibold text-azure-500 sym" style="font-family:'Noto Serif SC','Source Han Serif SC',serif;">01</span>
+		<h3 id="modal-title" class="text-[18px] font-semibold tracking-tight ink-strong" style="font-family:'Noto Serif SC','Source Han Serif SC',serif;">标题</h3>
+	  </div>
+	  <button id="modal-close" class="w-8 h-8 rounded-full flex items-center justify-center hover:bg-black/[0.05] dark:hover:bg-white/[0.08] active:scale-90 shrink-0">
+		<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+		  <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+		</svg>
+	  </button>
+	</div>
+	<div id="modal-body" class="text-[14px] leading-[1.85] text-inkDeep-400 dark:text-inkDeep-200 space-y-3" style="font-family:'Noto Serif SC','Source Han Serif SC',serif;">
+	  <!-- 讲解内容 -->
+	</div>
+  </div>
+</div>
+
+<!-- ========== 底部胶囊任务栏 ========== -->
+<nav class="capsule-tabbar" id="capsule-tabbar">
+  <button data-tab="1" class="capsule-btn active">
+	<svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+	  <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+	</svg>
+	<span>模型与符号</span>
+  </button>
+  <button data-tab="2" class="capsule-btn">
+	<svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+	  <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/>
+	</svg>
+	<span>知识图谱</span>
+  </button>
+  <button data-tab="3" class="capsule-btn">
+	<svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+	  <path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+	</svg>
+	<span>知识点</span>
+  </button>
+</nav>
+
+<script>
+  // ===== 主题切换 + Sketchfab 联动 =====
+  const root = document.documentElement;
+  const frame = document.getElementById('sketchfab-frame');
+  const BASE = 'https://sketchfab.com/models/206c30923a754565af2eb980af575f7c/embed';
+  const PARAMS = 'autospin=0.2&preload=1&ui_infos=0&ui_watermark=0&ui_theme=';
+
+  function syncFrameTheme() {
+	if (!frame) return;
+	const dark = root.classList.contains('dark');
+	frame.src = BASE + '?' + PARAMS + (dark ? 'dark' : 'light');
+  }
+
+  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  if (prefersDark) root.classList.add('dark');
+  syncFrameTheme();
+
+  document.getElementById('theme-toggle').addEventListener('click', () => {
+	root.classList.toggle('dark');
+	syncFrameTheme();
+  });
+
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+	if (e.matches) root.classList.add('dark');
+	else root.classList.remove('dark');
+	syncFrameTheme();
+  });
+
+  // ===== 标签页切换 =====
+  const tabs = document.querySelectorAll('.capsule-btn');
+  const panels = {
+	1: document.getElementById('panel-1'),
+	2: document.getElementById('panel-2'),
+	3: document.getElementById('panel-3'),
+  };
+  let currentTab = 1;
+
+  function switchTab(id) {
+	if (id === currentTab) return;
+	const nextPanel = panels[id];
+	const prevPanel = panels[currentTab];
+	if (!nextPanel || !prevPanel) return;
+
+	prevPanel.classList.remove('active');
+	setTimeout(() => {
+	  nextPanel.classList.add('active');
+	}, 60);
+
+	tabs.forEach(btn => {
+	  btn.classList.toggle('active', btn.dataset.tab === String(id));
+	});
+
+	currentTab = id;
+  }
+
+  tabs.forEach(btn => {
+	btn.addEventListener('click', () => {
+	  const id = Number(btn.dataset.tab);
+	  switchTab(id);
+	});
+  });
+
+  // ===== 知识点数据 =====
+  const knowledgeData = [
+	{ num:'01', title:'低压断路器俗称', summary:'自动空气开关，广泛应用于低压配电系统。',
+	  detail:`<p><strong>俗称：</strong>自动空气开关（简称“空开”）。</p><p><strong>定义：</strong>能手动或电动合闸，并在电路发生过载、短路、欠电压等故障时自动切断电路的开关电器。</p><p><strong>应用：</strong>广泛应用于工业与民用低压配电系统。</p><p><strong>考点：</strong>掌握其“自动空气开关”的俗称，区分它与刀开关、熔断器的不同。</p>` },
+	{ num:'02', title:'文字符号 QF', summary:'断路器在电气原理图中统一使用 QF 标识。',
+	  detail:`<p><strong>文字符号：</strong>QF（Q代表开关电器，F代表保护）。</p><p><strong>使用场景：</strong>所有断路器均标注为QF。</p><p><strong>易错点：</strong>不要与隔离开关（QS）、负荷开关（QL）混淆。</p><p><strong>考点：</strong>识读原理图时快速定位QF并分析其保护功能。</p>` },
+	{ num:'03', title:'过载保护', summary:'利用双金属片热效应，电流超限时延时脱扣。',
+	  detail:`<p><strong>原理：</strong>电流增大，双金属片弯曲，推动脱扣机构动作。</p><p><strong>特点：</strong>反时限特性——电流越大动作越快。</p><p><strong>作用：</strong>保护电动机、导线免受过载损坏。</p><p><strong>考点：</strong>由热脱扣器完成，与短路保护（电磁脱扣器）区分。</p>` },
+	{ num:'04', title:'短路保护', summary:'电磁脱扣器瞬时动作，快速切断短路电流。',
+	  detail:`<p><strong>原理：</strong>短路电流极大，电磁脱扣器产生强大电磁力，瞬时吸引衔铁。</p><p><strong>特点：</strong>动作时间极短（小于0.1秒）。</p><p><strong>作用：</strong>快速切除短路故障，防止设备损坏和火灾。</p><p><strong>考点：</strong>由过电流脱扣器（电磁式）完成。</p>` },
+	{ num:'05', title:'欠电压保护', summary:'电压过低时线圈吸力不足，弹簧释放脱扣。',
+	  detail:`<p><strong>原理：</strong>线圈并联在电源上，电压降至额定值70%~35%时，吸力不足，衔铁释放。</p><p><strong>作用：</strong>防止电动机低压运行烧毁，也可用于失压保护。</p><p><strong>考点：</strong>欠电压脱扣器是并联线圈，与过电流脱扣器（串联线圈）不同。</p>` },
+	{ num:'06', title:'分励脱扣器', summary:'用于远方控制跳闸，常配合消防联动系统。',
+	  detail:`<p><strong>原理：</strong>独立电磁线圈，通电时产生电磁力推动脱扣机构跳闸。</p><p><strong>特点：</strong>短时工作制，由按钮或消防信号控制。</p><p><strong>应用：</strong>火灾时强制切断非消防电源。</p><p><strong>考点：</strong>与欠电压脱扣器的区别（主动跳闸 vs 失压跳闸）。</p>` },
+	{ num:'07', title:'触头系统', summary:'包括主触头和弧触头，承担接通与分断电流。',
+	  detail:`<p><strong>组成：</strong>主触头（长期工作电流）、弧触头（分断电弧电流）。</p><p><strong>动作顺序：</strong>合闸时弧触头先合，分闸时主触头先断。</p><p><strong>作用：</strong>保护主触头不被电弧烧蚀。</p><p><strong>考点：</strong>理解“弧触头先合后分”的保护机制。</p>` },
+	{ num:'08', title:'灭弧系统', summary:'采用灭弧栅片切割电弧，加速冷却与熄灭。',
+	  detail:`<p><strong>原理：</strong>电弧被栅片切割成多段短弧，利用近极压降和冷却作用熄灭。</p><p><strong>结构：</strong>由镀铜钢片（灭弧栅片）组成。</p><p><strong>作用：</strong>限制电弧燃烧时间，防止触头烧损。</p><p><strong>考点：</strong>灭弧能力是断路器分断能力的关键指标。</p>` },
+	{ num:'09', title:'操作机构', summary:'实现手动或电动合闸、自由脱扣与再扣。',
+	  detail:`<p><strong>功能：</strong>实现合闸、分闸操作，保证故障时自由脱扣。</p><p><strong>自由脱扣：</strong>即使手柄被按住，脱扣器动作仍能断开电路。</p><p><strong>再扣：</strong>故障排除后需复位手柄才能重新合闸。</p><p><strong>考点：</strong>理解“自由脱扣”概念及其重要性。</p>` },
+	{ num:'10', title:'自由脱扣', summary:'即使操作手柄被按住，脱扣器仍能断开电路。',
+	  detail:`<p><strong>定义：</strong>合闸位置发生故障时，脱扣器动作，操作机构自动使触头断开，不受手柄位置影响。</p><p><strong>意义：</strong>保证人为误操作时仍能可靠切断故障电流。</p><p><strong>考点：</strong>自由脱扣是断路器安全性的重要保障。</p>` },
+	{ num:'11', title:'额定电压 Ue', summary:'断路器长期正常工作的电压，需 ≥ 线路电压。',
+	  detail:`<p><strong>定义：</strong>断路器在规定条件下能长期正常工作的电压值。</p><p><strong>选择原则：</strong>必须大于或等于线路额定电压。</p><p><strong>注意：</strong>三相电路需区分相电压和线电压。</p><p><strong>考点：</strong>额定电压是选择断路器的首要参数之一。</p>` },
+	{ num:'12', title:'额定电流 In', summary:'长期通过而不引起过载保护动作的最大电流。',
+	  detail:`<p><strong>定义：</strong>规定环境温度下能长期通过而不引起过载保护动作的最大电流。</p><p><strong>选择原则：</strong>应大于或等于负载计算电流。</p><p><strong>注意：</strong>与脱扣器整定电流不同，整定电流可调整。</p><p><strong>考点：</strong>额定电流是选择断路器的重要依据。</p>` },
+	{ num:'13', title:'极限通断能力', summary:'断路器能安全切断的最大短路电流值。',
+	  detail:`<p><strong>定义：</strong>规定条件下能安全接通和分断的最大短路电流值（Icu）。</p><p><strong>选择原则：</strong>必须大于或等于线路中可能出现的最大短路电流。</p><p><strong>意义：</strong>保证短路时能可靠切断故障。</p><p><strong>考点：</strong>极限通断能力是断路器的重要安全指标。</p>` },
+	{ num:'14', title:'脱扣器整定电流', summary:'根据负载特性调整，确保保护选择性。',
+	  detail:`<p><strong>定义：</strong>脱扣器动作的电流设定值。</p><p><strong>调整原则：</strong>根据负载额定电流和启动电流特性调整。</p><p><strong>选择性：</strong>上下级整定电流应配合，确保只有最靠近故障点的断路器动作。</p><p><strong>考点：</strong>整定电流的调整是断路器应用的关键技能。</p>` },
+	{ num:'15', title:'塑壳断路器', summary:'外壳为塑料绝缘，常用于配电柜与终端回路。',
+	  detail:`<p><strong>特点：</strong>塑料绝缘外壳，结构紧凑，体积小，价格适中。</p><p><strong>容量：</strong>额定电流通常在16A~1600A之间。</p><p><strong>应用：</strong>配电柜、终端配电箱等场合。</p><p><strong>考点：</strong>低压配电系统中使用最广泛的类型之一。</p>` },
+	{ num:'16', title:'框架断路器', summary:'又称万能式，容量大，用于主进线柜。',
+	  detail:`<p><strong>特点：</strong>又称万能式断路器，框架式结构，容量大，可维修性好。</p><p><strong>容量：</strong>额定电流通常在630A~6300A之间。</p><p><strong>应用：</strong>配电系统的主进线柜、母联柜。</p><p><strong>考点：</strong>与塑壳断路器的区别在于结构和容量。</p>` },
+	{ num:'17', title:'限流断路器', summary:'利用电弧电压限制短路电流峰值。',
+	  detail:`<p><strong>原理：</strong>利用电弧电压快速限制短路电流上升，在达到峰值前切断。</p><p><strong>特点：</strong>分断速度极快，有效限制短路电流对设备的冲击。</p><p><strong>应用：</strong>对短路电流限制要求较高的场合。</p><p><strong>考点：</strong>限流断路器是断路器的重要分支。</p>` },
+	{ num:'18', title:'单极断路器', summary:'用于单相电路，保护一根相线。',
+	  detail:`<p><strong>结构：</strong>只有一个极，用于单相电路。</p><p><strong>应用：</strong>家庭照明、插座等单相回路。</p><p><strong>注意：</strong>只切断相线，中性线不切断。</p><p><strong>考点：</strong>单极断路器在原理图中的符号识别。</p>` },
+	{ num:'19', title:'三极断路器', summary:'用于三相电路，三相同步分合。',
+	  detail:`<p><strong>结构：</strong>有三个极，用于三相电路。</p><p><strong>特点：</strong>三相同步分合，保证同时接通或断开。</p><p><strong>应用：</strong>三相电动机、三相配电回路。</p><p><strong>考点：</strong>三极断路器在原理图中的符号识别。</p>` },
+	{ num:'20', title:'四极断路器', summary:'用于三相四线制，分断中性线。',
+	  detail:`<p><strong>结构：</strong>有四个极，用于三相四线制电路。</p><p><strong>特点：</strong>能同时分断三根相线和一根中性线。</p><p><strong>应用：</strong>需要切断中性线的配电系统。</p><p><strong>考点：</strong>四极断路器的应用场景。</p>` },
+	{ num:'21', title:'热磁脱扣器', summary:'热元件负责过载，电磁元件负责短路。',
+	  detail:`<p><strong>组成：</strong>热元件（双金属片）和电磁元件（线圈和衔铁）。</p><p><strong>功能：</strong>热元件实现过载保护，电磁元件实现短路保护。</p><p><strong>特点：</strong>结构简单，可靠性高，成本低。</p><p><strong>考点：</strong>最常见的脱扣器类型。</p>` },
+	{ num:'22', title:'电子脱扣器', summary:'采用微处理器，精度高、可通信。',
+	  detail:`<p><strong>组成：</strong>电流互感器、微处理器、执行机构。</p><p><strong>特点：</strong>保护精度高，整定方便，可实现通信和远程监控。</p><p><strong>应用：</strong>智能配电系统、框架断路器。</p><p><strong>考点：</strong>智能断路器的重要组成部分。</p>` },
+	{ num:'23', title:'保护选择性', summary:'上下级断路器通过电流与时间配合实现分级保护。',
+	  detail:`<p><strong>定义：</strong>故障时只有最靠近故障点的断路器动作。</p><p><strong>实现方式：</strong>通过额定电流和脱扣时间配合。</p><p><strong>意义：</strong>缩小停电范围，提高供电可靠性。</p><p><strong>考点：</strong>配电系统设计的重要原则。</p>` },
+	{ num:'24', title:'额定短路分断能力 Icu', summary:'断路器能分断的最大短路电流有效值。',
+	  detail:`<p><strong>定义：</strong>规定条件下能分断的最大短路电流有效值。</p><p><strong>选择原则：</strong>必须大于或等于线路中可能出现的最大短路电流。</p><p><strong>意义：</strong>保证短路时能安全分断。</p><p><strong>考点：</strong>Icu是断路器的重要参数。</p>` },
+	{ num:'25', title:'额定短时耐受电流 Icw', summary:'在规定时间内承受短路电流而不损坏的能力。',
+	  detail:`<p><strong>定义：</strong>规定时间内（通常1秒）能承受的短路电流有效值。</p><p><strong>意义：</strong>反映短路电流下的热稳定性和动稳定性。</p><p><strong>应用：</strong>母联断路器等需要短时耐受短路电流的场合。</p><p><strong>考点：</strong>Icw与Icu的区别。</p>` },
+	{ num:'26', title:'飞弧距离', summary:'分断时电弧喷出距离，安装需预留空间。',
+	  detail:`<p><strong>定义：</strong>分断短路电流时电弧从灭弧室喷出的距离。</p><p><strong>意义：</strong>安装时必须预留足够飞弧距离，防止相间短路或接地故障。</p><p><strong>注意：</strong>通常在断路器样本中给出。</p><p><strong>考点：</strong>断路器安装的重要考虑因素。</p>` },
+	{ num:'27', title:'接线端子标识', summary:'进线端与出线端不可反接，否则影响保护性能。',
+	  detail:`<p><strong>标识：</strong>通常标有“电源侧”和“负载侧”或“LINE”和“LOAD”。</p><p><strong>要求：</strong>进线端接电源，出线端接负载，不可反接。</p><p><strong>原因：</strong>反接会影响脱扣器正常工作，降低保护性能。</p><p><strong>考点：</strong>接线端子的正确连接是安装的基本要求。</p>` },
+	{ num:'28', title:'万用表测通断', summary:'检测触头是否可靠接触，判断断路器好坏。',
+	  detail:`<p><strong>方法：</strong>万用表置于电阻档或通断档，测量进线端和出线端之间的电阻。</p><p><strong>判断：</strong>合闸时电阻接近0Ω，分闸时为无穷大。</p><p><strong>注意：</strong>测量前必须确认断路器已断电。</p><p><strong>考点：</strong>万用表测通断是电工基本技能。</p>` },
+	{ num:'29', title:'兆欧表测绝缘', summary:'测量相间与相对地绝缘电阻，确保安全。',
+	  detail:`<p><strong>方法：</strong>兆欧表（摇表）测量断路器相间、相对地的绝缘电阻。</p><p><strong>标准：</strong>绝缘电阻应大于0.5MΩ（具体参考规范）。</p><p><strong>注意：</strong>测量前必须断电，测量后必须放电。</p><p><strong>考点：</strong>电气安全的重要环节。</p>` },
+	{ num:'30', title:'电力拖动控制线路', summary:'QF 作为总电源开关，配合接触器实现电机控制。',
+	  detail:`<p><strong>应用：</strong>QF作为总电源开关，提供过载和短路保护。</p><p><strong>配合：</strong>与接触器、热继电器等配合，实现电动机的启动、停止和保护。</p><p><strong>考点：</strong>识读电力拖动控制线路图，定位QF及其作用。</p>` },
+	{ num:'31', title:'原理图识读要点', summary:'定位 QF 符号，分析其保护环节与联锁关系。',
+	  detail:`<p><strong>步骤：</strong>找到QF符号；分析主触头和控制触头；分析保护环节（过载、短路、欠压）。</p><p><strong>注意：</strong>辅助触头常用于控制回路，需注意常开/常闭状态。</p><p><strong>考点：</strong>原理图识读是电气技术的基础能力。</p>` },
+	{ num:'32', title:'考核安全电压', summary:'浙江单考单招实操采用三相 36V 安全电压。',
+	  detail:`<p><strong>规定：</strong>浙江单考单招电气实操考核采用三相36V安全电压。</p><p><strong>意义：</strong>保证考生人身安全。</p><p><strong>注意：</strong>必须严格遵守安全操作规程。</p><p><strong>考点：</strong>安全电压是实操考核的基本要求。</p>` },
+	{ num:'33', title:'工具自备无标识', summary:'考核时工具不得带有学校或个人标识。',
+	  detail:`<p><strong>要求：</strong>考生自备工具，工具上不得带有学校名称、个人姓名等标识。</p><p><strong>目的：</strong>保证考核的公平公正。</p><p><strong>考点：</strong>考核纪律要求。</p>` },
+	{ num:'34', title:'断路器与隔离开关区别', summary:'断路器带保护功能，隔离开关仅作隔离。',
+	  detail:`<p><strong>断路器：</strong>能接通、分断正常电流和故障电流，具有保护功能。</p><p><strong>隔离开关：</strong>只能接通和分断空载电流，不能分断故障电流，仅用于隔离电源。</p><p><strong>考点：</strong>区分断路器和隔离开关的功能和符号。</p>` },
+	{ num:'35', title:'断路器与熔断器区别', summary:'断路器可重复使用，熔断器需更换熔体。',
+	  detail:`<p><strong>断路器：</strong>故障排除后，手动复位即可继续使用。</p><p><strong>熔断器：</strong>熔断后必须更换熔体，不能重复使用。</p><p><strong>考点：</strong>断路器和熔断器的优缺点比较。</p>` },
+	{ num:'36', title:'智能断路器', summary:'集成测量、通信、远程控制功能，属于发展趋势。',
+	  detail:`<p><strong>特点：</strong>集成电流、电压测量，支持通信接口（如Modbus、以太网），可实现远程监控和控制。</p><p><strong>应用：</strong>智能配电系统、物联网等。</p><p><strong>考点：</strong>智能断路器是电气技术发展的趋势。</p>` }
+  ];
+
+  // ===== 生成知识点卡片 =====
+  const grid = document.getElementById('knowledge-grid');
+  knowledgeData.forEach((item) => {
+	const card = document.createElement('div');
+	card.className = 'k-card card p-4 rounded-2xl';
+	card.dataset.num = item.num;
+	card.innerHTML = `
+	  <div class="flex items-center gap-2 mb-1.5">
+		<span class="w-1 h-3.5 rounded-full bg-azure-500"></span>
+		<span class="text-[12px] font-semibold text-azure-500 sym" style="font-family:'Noto Serif SC','Source Han Serif SC',serif;">${item.num}</span>
+	  </div>
+	  <h4 class="text-[14px] font-semibold mb-1 ink-strong" style="font-family:'Noto Serif SC','Source Han Serif SC',serif;">${item.title}</h4>
+	  <p class="text-[13px] text-inkDeep-400 dark:text-inkDeep-300 leading-relaxed" style="font-family:'Noto Serif SC','Source Han Serif SC',serif;">${item.summary}</p>
+	  <div class="mt-2 text-[11px] text-azure-500/70 dark:text-azure-400/60 font-medium flex items-center gap-1" style="font-family:'Noto Serif SC','Source Han Serif SC',serif;">
+		<span>点击查看详情</span>
+		<svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+		  <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
+		</svg>
+	  </div>
+	`;
+	card.addEventListener('click', () => openModal(item));
+	// 鼠标跟随光晕
+	card.addEventListener('mousemove', (e) => {
+	  const rect = card.getBoundingClientRect();
+	  card.style.setProperty('--mx', ((e.clientX - rect.left) / rect.width * 100) + '%');
+	  card.style.setProperty('--my', ((e.clientY - rect.top) / rect.height * 100) + '%');
+	});
+	grid.appendChild(card);
+  });
+
+  // ===== 模态框逻辑 =====
+  const modalOverlay = document.getElementById('modal-overlay');
+  const modalNum = document.getElementById('modal-num');
+  const modalTitle = document.getElementById('modal-title');
+  const modalBody = document.getElementById('modal-body');
+  const modalClose = document.getElementById('modal-close');
+
+  function openModal(item) {
+	modalNum.textContent = item.num;
+	modalTitle.textContent = item.title;
+	modalBody.innerHTML = item.detail;
+	modalOverlay.classList.add('open');
+	document.body.style.overflow = 'hidden';
+  }
+
+  function closeModal() {
+	modalOverlay.classList.remove('open');
+	document.body.style.overflow = '';
+  }
+
+  modalClose.addEventListener('click', closeModal);
+  modalOverlay.addEventListener('click', (e) => {
+	if (e.target === modalOverlay) closeModal();
+  });
+
+  document.addEventListener('keydown', (e) => {
+	if (e.key === 'Escape' && modalOverlay.classList.contains('open')) {
+	  closeModal();
+	}
+  });
+</script>
+
+</body>
+</html>

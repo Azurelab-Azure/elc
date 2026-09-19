@@ -1,62 +1,43 @@
 {
-  "version": "1.0.0",
-  "updatedAt": "2026-09-13",
+  "version": "2.1.0",
+  "updatedAt": "2026-09-19",
 
-  "categories": [
+  "teaching": [
     {
-      "id": "",
-      "name": "",
-      "description": "",
-      "icon": "",
-      "color": "",
-      "path": "",
-      "itemCount": 0
+      "fileName": "认识电感器",
+      "title": "认识电感器",
+      "description": "一个用于认识电感器的工具",
+      "complexity": "中级",
+      "author": "Azure_Lab",
+      "date": "2026-09-13",
+      "thumbnail": "/beta/images/认识电感器.png",
+      "tags": ["电感", "元件"]
+    },
+    {
+      "fileName": "低压断路器",
+      "title": "低压断路器的认识",
+      "description": "一个用于仿真低压断路器工作原理的工具",
+      "complexity": "中级",
+      "author": "Azure_Lab",
+      "date": "2026-09-13",
+      "thumbnail": "/beta/images/低压断路器.png",
+      "tags": ["断路器", "低压电器", "保护"]
     }
   ],
 
-  "circuits": [
+  "simulation": [
     {
-      "category": "basic",
       "fileName": "单相电波形参数仿真器",
       "title": "单相电波形参数仿真器",
       "description": "一个用于仿真单相正弦交流电波形参数的工具",
       "complexity": "中级",
       "author": "Azure_Lab",
       "date": "2026-09-13",
-      "thumbnail": "/beta/images/thumbnails/单相电波形参数仿真器.png",
-      "simulationRules": ""
+      "thumbnail": "/beta/images/单相电波形参数仿真器.png",
+      "tags": ["单相电", "交流电", "波形"]
     }
+    
   ],
 
-  "documents": [
-    {
-      "category": "",
-      "fileName": "",
-      "title": "",
-      "description": "",
-      "type": "",
-      "author": "",
-      "date": "",
-      "readTime": ""
-    }
-  ],
-
-  "animations": [
-    {
-      "fileName": "",
-      "title": "",
-      "description": "",
-      "duration": 0,
-      "loop": true
-    }
-  ],
-
-  "images": [
-    {
-      "category": "",
-      "fileName": "",
-      "title": "",
-      "description": ""
-    }
-  ]
+  "circuits": []
 }

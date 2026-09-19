@@ -1,83 +1,59 @@
 import { ref } from 'vue';
 
-export interface CatalogItem {
+export interface TeachingItem {
   id: string;
-  type: 'circuit' | 'document' | 'animation' | 'image';
-  category: string;
+  fileName: string;
   title: string;
   description: string;
-  path: string;
-  thumbnail?: string;
-  rating?: number;
-  reviews?: number;
-  usedCount?: number;
+  format: 'md' | 'html';
+  level: string;
+  author: string;
   date: string;
+  readTime: string;
+  thumbnail: string;
   tags: string[];
-  author?: string;
-  readTime?: string;
+  filePath: string;
 }
 
-export interface Category {
+export interface SimulationItem {
   id: string;
-  name: string;
+  fileName: string;
+  title: string;
   description: string;
-  icon: string;
-  path: string;
-  color: string;
-  itemCount: number;
+  complexity: string;
+  author: string;
+  date: string;
+  thumbnail: string;
+  tags: string[];
+  filePath: string;
 }
 
 export interface CircuitItem {
   id: string;
-  name: string;
-  description: string;
-  category: string;
-  complexity: string;
-  filePath: string;
-  thumbnail?: string;
-  simulationRules?: string;
-  author?: string;
-  date?: string;
-}
-
-export interface DocumentItem {
-  id: string;
+  fileName: string;
   title: string;
   description: string;
-  type: string;
-  filePath: string;
-  author?: string;
+  category: string;
+  author: string;
   date: string;
-  readTime?: string;
-}
-
-export interface RuleConfig {
-  id: string;
-  name: string;
-  description: string;
-  parameters: Record<string, any>;
-  logic: string[];
-  conditions: any[];
-  actions: any[];
+  thumbnail: string;
+  tags: string[];
+  filePath: string;
 }
 
 interface CatalogFile {
   version: string;
   updatedAt: string;
-  categories: Category[];
+  teaching: any[];
+  simulation: any[];
   circuits: any[];
-  documents: any[];
-  animations: any[];
-  images: any[];
 }
 
 class DataLoader {
-  private catalog: CatalogItem[] = [];
-  private categories: Category[] = [];
+  private catalog: CatalogFile | null = null;
+  private teaching: TeachingItem[] = [];
+  private simulation: SimulationItem[] = [];
   private circuits: CircuitItem[] = [];
-  private documents: DocumentItem[] = [];
-  private rules: Record<string, RuleConfig> = {};
-  private catalogFile: CatalogFile | null = null;
   private loading = ref(false);
   private error = ref<string | null>(null);
   private initialized = false;
@@ -88,11 +64,10 @@ class DataLoader {
     this.error.value = null;
 
     try {
-      await this.loadCatalogFile();
-      await this.loadCategoriesFromCatalog();
-      await this.loadCircuitsFromFiles();
-      await this.loadDocumentsFromFiles();
-      await this.loadRulesFromFiles();
+      await this.loadCatalog();
+      this.buildTeaching();
+      this.buildSimulation();
+      this.buildCircuits();
       this.initialized = true;
     } catch (err) {
       this.error.value = (err as Error).message;
@@ -101,187 +76,138 @@ class DataLoader {
     }
   }
 
-  private async loadCatalogFile(): Promise<void> {
+  private async loadCatalog(): Promise<void> {
     try {
       const response = await fetch('/beta/catalog.json');
-      if (!response.ok) {
-        this.catalogFile = null;
-        return;
-      }
-      this.catalogFile = await response.json();
+      if (!response.ok) throw new Error('catalog.json not found');
+      this.catalog = await response.json();
     } catch {
-      this.catalogFile = null;
+      this.catalog = null;
     }
   }
 
-  private async loadCategoriesFromCatalog(): Promise<void> {
-    if (this.catalogFile?.categories && Array.isArray(this.catalogFile.categories)) {
-      this.categories = this.catalogFile.categories;
-    } else {
-      this.categories = [];
-    }
-  }
+  private buildTeaching(): void {
+  const mdModules = import.meta.glob('/beta/teaching/**/*.md', {
+    query: '?raw',
+    import: 'default'
+  });
 
-  async loadCircuits(): Promise<void> {
-    await this.loadCircuitsFromFiles();
-  }
+  const htmlModules = import.meta.glob('/beta/teaching/**/*.html', {
+    query: '?raw',
+    import: 'default'
+  });
 
-  private async loadCircuitsFromFiles(): Promise<void> {
-    const circuits: CircuitItem[] = [];
+  const meta = this.catalog?.teaching || [];
+  const items: TeachingItem[] = [];
 
-    const htmlModules = import.meta.glob('/beta/circuits/**/*.html', { 
-      query: '?raw', 
-      import: 'default' 
+  const buildItem = (path: string, format: 'md' | 'html') => {
+    const fileName = path.split('/').pop()?.replace(/\.(md|html)$/, '') || '';
+    const m = meta.find((x: any) => x.fileName === fileName) || {};
+
+    return {
+      id: `teaching-${fileName}`,
+      fileName,
+      title: m.title || fileName.replace(/-/g, ' '),
+      description: m.description || '',
+      format,
+      level: m.level || '入门',
+      author: m.author || '匿名',
+      date: m.date || '',
+      readTime: m.readTime || '',
+      thumbnail: m.thumbnail || `/beta/images/thumb-${fileName}.png`,
+      tags: m.tags || [],
+      filePath: path
+    };
+  };
+
+  Object.keys(mdModules).forEach(path => {
+    items.push(buildItem(path, 'md'));
+  });
+
+  Object.keys(htmlModules).forEach(path => {
+    items.push(buildItem(path, 'html'));
+  });
+
+  this.teaching = items;
+}
+
+  private buildSimulation(): void {
+    const htmlModules = import.meta.glob('/beta/simulation/**/*.html', {
+      query: '?raw',
+      import: 'default'
     });
 
-    const paths = Object.keys(htmlModules);
+    const files = Object.keys(htmlModules);
+    const meta = this.catalog?.simulation || [];
 
-    for (const path of paths) {
-      const parts = path.split('/');
-      const fileName = parts[parts.length - 1].replace('.html', '');
-      const category = parts[parts.length - 2];
+    this.simulation = files.map(path => {
+      const fileName = path.split('/').pop()?.replace('.html', '') || '';
+      const m = meta.find((x: any) => x.fileName === fileName) || {};
 
-      const meta = this.findCircuitMeta(category, fileName);
-
-      circuits.push({
-        id: `${category}-${fileName}`,
-        name: meta?.title || this.formatName(fileName),
-        description: meta?.description || '',
-        category,
-        complexity: meta?.complexity || '中级',
-        filePath: path,
-        thumbnail: meta?.thumbnail || `/beta/images/thumbnails/thumb_${fileName}.png`,
-        simulationRules: meta?.simulationRules,
-        author: meta?.author,
-        date: meta?.date
-      });
-    }
-
-    this.circuits = circuits;
+      return {
+        id: `simulation-${fileName}`,
+        fileName,
+        title: m.title || fileName.replace(/-/g, ' '),
+        description: m.description || '',
+        complexity: m.complexity || '中级',
+        author: m.author || '匿名',
+        date: m.date || '',
+        thumbnail: m.thumbnail || `/beta/images/thumb-${fileName}.png`,
+        tags: m.tags || [],
+        filePath: path
+      };
+    });
   }
 
-  private findCircuitMeta(category: string, fileName: string): any {
-    if (!this.catalogFile?.circuits) return null;
-    return this.catalogFile.circuits.find(
-      (c: any) => c.category === category && c.fileName === fileName
-    );
-  }
-
-  async loadDocuments(): Promise<void> {
-    await this.loadDocumentsFromFiles();
-  }
-
-  private async loadDocumentsFromFiles(): Promise<void> {
-    const documents: DocumentItem[] = [];
-
-    const mdModules = import.meta.glob('/beta/docs/**/*.md', { 
-      query: '?raw', 
-      import: 'default' 
+  private buildCircuits(): void {
+    const svgModules = import.meta.glob('/beta/circuits/**/*.{svg,png,jpg,jpeg,webp}', {
+      as: 'url'
     });
 
-    const paths = Object.keys(mdModules);
+    const files = Object.keys(svgModules);
+    const meta = this.catalog?.circuits || [];
 
-    for (const path of paths) {
-      const parts = path.split('/');
-      const fileName = parts[parts.length - 1].replace('.md', '');
-      const category = parts[parts.length - 2];
+    this.circuits = files.map(path => {
+      const fileName = path.split('/').pop()?.replace(/\.(svg|png|jpg|jpeg|webp)$/, '') || '';
+      const m = meta.find((x: any) => x.fileName === fileName) || {};
 
-      const meta = this.findDocumentMeta(category, fileName);
-
-      documents.push({
-        id: `${category}-${fileName}`,
-        title: meta?.title || this.formatName(fileName),
-        description: meta?.description || '',
-        type: meta?.type || category,
-        filePath: path,
-        author: meta?.author,
-        date: meta?.date || '',
-        readTime: meta?.readTime || ''
-      });
-    }
-
-    this.documents = documents;
+      return {
+        id: `circuit-${fileName}`,
+        fileName,
+        title: m.title || fileName.replace(/-/g, ' '),
+        description: m.description || '',
+        category: m.category || '基础',
+        author: m.author || '匿名',
+        date: m.date || '',
+        thumbnail: m.thumbnail || path,
+        tags: m.tags || [],
+        filePath: path
+      };
+    });
   }
 
-  private findDocumentMeta(category: string, fileName: string): any {
-    if (!this.catalogFile?.documents) return null;
-    return this.catalogFile.documents.find(
-      (d: any) => d.category === category && d.fileName === fileName
-    );
+  getTeaching(): TeachingItem[] {
+    return this.teaching;
   }
 
-  private async loadRulesFromFiles(): Promise<void> {
-    const ruleModules = import.meta.glob('/rules/**/*.json');
-
-    for (const path in ruleModules) {
-      try {
-        const module: any = await ruleModules[path]();
-        const parts = path.split('/');
-        const category = parts[parts.length - 2];
-        const fileName = parts[parts.length - 1].replace('.json', '');
-
-        const data = module.default || module;
-
-        this.rules[`${category}-${fileName}`] = {
-          id: `${category}-${fileName}`,
-          name: data.name || this.formatName(fileName),
-          description: data.description || '',
-          parameters: data.parameters || {},
-          logic: data.logic || [],
-          conditions: data.conditions || [],
-          actions: data.actions || []
-        };
-      } catch {
-        continue;
-      }
-    }
-  }
-
-  private formatName(name: string): string {
-    return name
-      .replace(/-/g, ' ')
-      .replace(/_/g, ' ')
-      .replace(/\b\w/g, c => c.toUpperCase());
-  }
-
-  getCatalog(): CatalogItem[] {
-    return this.catalog;
-  }
-
-  getCategories(): Category[] {
-    return this.categories;
+  getSimulation(): SimulationItem[] {
+    return this.simulation;
   }
 
   getCircuits(): CircuitItem[] {
     return this.circuits;
   }
 
+  getTeachingById(id: string): TeachingItem | undefined {
+    return this.teaching.find(t => t.id === id);
+  }
+
+  getSimulationById(id: string): SimulationItem | undefined {
+    return this.simulation.find(s => s.id === id);
+  }
+
   getCircuitById(id: string): CircuitItem | undefined {
     return this.circuits.find(c => c.id === id);
-  }
-
-  getCircuitsByCategory(category: string): CircuitItem[] {
-    return this.circuits.filter(c => c.category === category);
-  }
-
-  getDocuments(): DocumentItem[] {
-    return this.documents;
-  }
-
-  getDocumentById(id: string): DocumentItem | undefined {
-    return this.documents.find(d => d.id === id);
-  }
-
-  getDocumentsByType(type: string): DocumentItem[] {
-    return this.documents.filter(d => d.type === type);
-  }
-
-  getRule(id: string): RuleConfig | undefined {
-    return this.rules[id];
-  }
-
-  getRulesByCategory(category: string): RuleConfig[] {
-    return Object.values(this.rules).filter(r => r.id.startsWith(category));
   }
 
   isLoading(): boolean {
@@ -293,7 +219,7 @@ class DataLoader {
   }
 
   hasData(): boolean {
-    return this.circuits.length > 0 || this.documents.length > 0;
+    return this.teaching.length > 0 || this.simulation.length > 0 || this.circuits.length > 0;
   }
 }
 

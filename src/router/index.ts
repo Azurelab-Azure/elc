@@ -3,23 +3,49 @@ import { createRouter, createWebHistory } from 'vue-router';
 const router = createRouter({
   history: createWebHistory(),
   routes: [
-    { path: '/', name: 'home', component: () => import('../views/HomeView.vue') },
-    { path: '/simulator', name: 'simulator', component: () => import('../views/SimulatorView.vue') },
-    { path: '/circuit/:id', name: 'circuit-detail', component: () => import('../views/CircuitDetailView.vue') },
-    { path: '/three-phase', name: 'three-phase', component: () => import('../views/ThreePhaseView.vue') },
-    { path: '/plc', name: 'plc', component: () => import('../views/PLCView.vue') },
-    { path: '/oscilloscope', name: 'oscilloscope', component: () => import('../views/OscilloscopeView.vue') },
-    { path: '/repository', name: 'repository', component: () => import('../views/RepositoryView.vue') },
-    { path: '/documents', name: 'documents', component: () => import('../views/DocumentView.vue') },
-    { path: '/document/:id', name: 'document-detail', component: () => import('../views/DocumentDetailView.vue') },
-    { path: '/submission', name: 'submission', component: () => import('../views/SubmissionView.vue') },
-    { path: '/editor', name: 'editor', component: () => import('../views/EditorView.vue') },
-    { path: '/about', name: 'about', component: () => import('../views/AboutView.vue') },
-    { path: '/:pathMatch(.*)*', name: 'not-found', component: () => import('../views/NotFoundView.vue') }
+    {
+      path: '/',
+      name: 'home',
+      component: () => import('../views/HomeView.vue'),
+      meta: { title: '首页' }
+    },
+    {
+      path: '/teaching',
+      name: 'teaching',
+      component: () => import('../views/TeachingView.vue'),
+      meta: { title: '电路教学' }
+    },
+    {
+      path: '/simulation',
+      name: 'simulation',
+      component: () => import('../views/SimulationView.vue'),
+      meta: { title: '电路仿真' }
+    },
+    {
+      path: '/circuit',
+      name: 'circuit',
+      component: () => import('../views/CircuitView.vue'),
+      meta: { title: '电路图' }
+    },
+    {
+      path: '/about',
+      name: 'about',
+      component: () => import('../views/AboutView.vue'),
+      meta: { title: '关于' }
+    },
+    {
+      path: '/:pathMatch(.*)*',
+      redirect: '/'
+    }
   ],
   scrollBehavior() {
     return { top: 0 };
   }
+});
+
+router.afterEach((to) => {
+  const title = to.meta?.title as string | undefined;
+  document.title = title ? `${title} · 电路仿真实验室` : '电路仿真实验室';
 });
 
 export default router;
