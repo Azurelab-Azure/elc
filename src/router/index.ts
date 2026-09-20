@@ -28,10 +28,10 @@ const router = createRouter({
       meta: { title: '电路图' }
     },
     {
-      path: '/about',
-      name: 'about',
-      component: () => import('../views/AboutView.vue'),
-      meta: { title: '关于' }
+      path: '/settings',
+      name: 'settings',
+      component: () => import('../views/SettingsView.vue'),
+      meta: { title: '设置' }
     },
     {
       path: '/:pathMatch(.*)*',

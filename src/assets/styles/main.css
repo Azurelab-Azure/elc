@@ -25,10 +25,39 @@ body {
   background: var(--bg-level-0);
   width: 100%;
   min-height: 100vh;
-  padding: 0 0 140px 0;
+  padding: 0;
   overflow-x: hidden;
-  transition: background-color 0.3s ease, color 0.3s ease;
+  transition: padding 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
+
+:root[data-dock-position='top'] body {
+  padding: 140px 0 0 0;
+}
+
+:root[data-dock-position='left'] body {
+  padding: 0 0 0 140px;
+}
+
+:root[data-dock-position='right'] body {
+  padding: 0 140px 0 0;
+}
+
+:root[data-dock-position='top'][data-dock-mode='auto-hide'] body {
+  padding: 40px 0 0 0;
+}
+
+:root[data-dock-position='bottom'][data-dock-mode='auto-hide'] body {
+  padding: 0 0 40px 0;
+}
+
+:root[data-dock-position='left'][data-dock-mode='auto-hide'] body {
+  padding: 0 0 0 40px;
+}
+
+:root[data-dock-position='right'][data-dock-mode='auto-hide'] body {
+  padding: 0 40px 0 0;
+}
+
 
 #app {
   width: 100%;
@@ -146,7 +175,7 @@ textarea,
 .page {
   width: 100%;
   min-height: 100vh;
-  padding: 100px max(24px, calc((100vw - 1280px) / 2)) 180px;
+  padding: 100px max(24px, calc((100vw - 1280px) / 2)) 80px;
   margin: 0 auto;
   box-sizing: border-box;
   position: relative;

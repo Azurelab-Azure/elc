@@ -2,12 +2,17 @@
   <div class="app-root" @contextmenu="handleContextMenu">
     <StaticBackground />
 
-    <router-view v-slot="{ Component }">
-      <transition name="page" mode="out-in">
-        <component :is="Component" />
-      </transition>
-    </router-view>
+    <main class="app-main">
+      <router-view v-slot="{ Component }">
+        <transition name="page" mode="out-in">
+          <component :is="Component" />
+        </transition>
+      </router-view>
 
+      <FooterBar />
+    </main>
+
+    <CookieBanner />
     <ContextMenu ref="contextMenuRef" :groups="menuGroups" />
   </div>
 </template>
@@ -18,10 +23,28 @@ import { useRouter } from 'vue-router';
 import StaticBackground from './components/common/StaticBackground.vue';
 import ContextMenu, { type ContextMenuItem } from './components/common/ContextMenu.vue';
 import { useThemeStore } from './store/themeStore';
+import { useSettingsStore } from './store/settingsStore';
+import CookieBanner from './components/common/CookieBanner.vue';
+import { useCookieStore } from './store/cookieStore';
+import FooterBar from './components/common/FooterBar.vue';
 
+
+const cookieStore = useCookieStore();
+
+onMounted(() => {
+  themeStore.init();
+  settingsStore.load();
+  cookieStore.load();
+});
+const settingsStore = useSettingsStore();
 const router = useRouter();
 const themeStore = useThemeStore();
 const contextMenuRef = ref<InstanceType<typeof ContextMenu> | null>(null);
+
+  onMounted(() => {
+  themeStore.init();
+  settingsStore.load();
+});
 
 const menuGroups = computed<ContextMenuItem[][]>(() => {
   const navigationGroup: ContextMenuItem[] = [
@@ -113,5 +136,14 @@ onMounted(() => {
 .page-leave-to {
   opacity: 0;
   transform: translateY(-8px);
+}
+
+
+.app-main {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  position: relative;
+  z-index: 1;
 }
 </style>
