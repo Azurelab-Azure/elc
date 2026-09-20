@@ -107,6 +107,45 @@
         </div>
       </section>
 
+
+            <!-- 临时入口 -->
+      <section class="setting-card glass">
+        <div class="card-header">
+          <div class="card-icon" style="background: linear-gradient(135deg, #5856d6, #5e5ce6)">
+            <AppIcon name="link" :size="20" />
+          </div>
+          <div>
+            <h2 class="card-title">临时入口</h2>
+            <p class="card-desc">访问个人博客与导航</p>
+          </div>
+        </div>
+
+        <div class="portal-list">
+          <button class="portal-btn" @click="goBlog">
+            <div class="portal-icon">
+              <AppIcon name="globe" :size="18" />
+            </div>
+            <div class="portal-info">
+              <span class="portal-label">个人博客</span>
+              <span class="portal-desc">寅虎青蛟 Azure · 电路与自动化笔记</span>
+            </div>
+            <AppIcon name="arrowRight" :size="16" class="portal-arrow" />
+          </button>
+
+          <button class="portal-btn" @click="goPortal">
+            <div class="portal-icon">
+              <AppIcon name="layout" :size="18" />
+            </div>
+            <div class="portal-info">
+              <span class="portal-label">站点导览</span>
+              <span class="portal-desc">查看本实验室所有入口</span>
+            </div>
+            <AppIcon name="arrowRight" :size="16" class="portal-arrow" />
+          </button>
+        </div>
+      </section>
+
+
             <!-- 关于 -->
       <section class="setting-card glass">
         <div class="card-header">
@@ -158,6 +197,9 @@ import { useSettingsStore, type DockPosition, type DockMode } from '../store/set
 import { useThemeStore, type ThemeMode } from '../store/themeStore';
 import { useCookieStore } from '../store/cookieStore';
 
+const goPortal = () => {
+  window.open('/portal.html', '_blank');
+};
 const cookieStore = useCookieStore();
 
 const openPrivacy = () => {
@@ -610,5 +652,79 @@ const themes: Array<{ value: ThemeMode; label: string }> = [
 .legal-btn :deep(.app-icon) {
   color: var(--text-tertiary);
   transition: all 0.2s ease;
+}
+
+.portal-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.portal-btn {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  background: var(--bg-level-2);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  transition: all 0.2s ease;
+  text-align: left;
+  width: 100%;
+}
+
+.portal-btn:hover {
+  background: var(--bg-hover);
+  border-color: var(--border-default);
+}
+
+.portal-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-md);
+  background: var(--glass-bg-weak);
+  border: 1px solid var(--glass-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-secondary);
+  flex-shrink: 0;
+}
+
+.portal-btn:hover .portal-icon {
+  color: var(--color-blue);
+}
+
+.portal-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.portal-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.portal-desc {
+  font-size: 12px;
+  color: var(--text-tertiary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.portal-arrow {
+  color: var(--text-tertiary);
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+}
+
+.portal-btn:hover .portal-arrow {
+  color: var(--color-blue);
+  transform: translateX(3px);
 }
 </style>

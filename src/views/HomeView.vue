@@ -133,6 +133,7 @@ const announcementLines = [
 ];
 
 const announcementActions = [
+  { label: '博客导览', onClick: () => window.open('/portal.html', '_blank') },
   { label: '开始探索', primary: true }
 ];
 

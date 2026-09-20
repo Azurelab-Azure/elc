@@ -1,0 +1,78 @@
+{
+  "version": "1.0.0",
+  "updatedAt": "2026-09-20",
+  "posts": [
+    {
+      "title": "Apple液态玻璃，教程来喽",
+      "subtitle": "关于Apple液态玻璃效果的web前端实现",
+      "date": "2026-07-24",
+      "category": "前端开发",
+      "mdPath": "/beta/blog/1/content.md",
+      "cover": "/beta/blog/1/cover.jpg"
+    },
+    {
+      "title": "关于鸿蒙的看法（一）",
+      "subtitle": "与Windows，Mac的软件对比",
+      "date": "2026-07-26",
+      "category": "鸿蒙",
+      "mdPath": "/beta/blog/2/content.md",
+      "cover": "/beta/blog/2/cover.jpg"
+    },
+    {
+      "title": "向量的概念",
+      "subtitle": "向量的定义和基本性质",
+      "date": "2026-07-24",
+      "category": "平面向量",
+      "mdPath": "/beta/blog/3/content.md",
+      "cover": "/beta/blog/3/cover.jpg"
+    },
+    {
+      "title": "电阻器的识读",
+      "subtitle": "关于电阻器的识别方法和技巧",
+      "date": "2026-07-24",
+      "category": "电工基础",
+      "mdPath": "/beta/blog/4/content.md",
+      "cover": "/beta/blog/4/cover.jpg"
+    },
+    {
+      "title": "三极管的基本概念",
+      "subtitle": "关于三极管的初步认识",
+      "date": "2026-08-14",
+      "category": "电子技术",
+      "mdPath": "/beta/blog/5/content.md",
+      "cover": "/beta/blog/5/cover.jpg"
+    },
+    {
+      "title": "三极管的工作电压和基本连接方式",
+      "subtitle": "关于三极管的应用的初步了解1",
+      "date": "2026-08-15",
+      "category": "电子技术",
+      "mdPath": "/beta/blog/6/content.md",
+      "cover": "/beta/blog/6/cover.jpg"
+    },
+    {
+      "title": "三极管的分配和放大作用",
+      "subtitle": "关于三极管的应用的初步了解2",
+      "date": "2026-08-16",
+      "category": "电子技术",
+      "mdPath": "/beta/blog/7/content.md",
+      "cover": "/beta/blog/7/cover.jpg"
+    },
+    {
+      "title": "电源有载工作",
+      "subtitle": "电源有载工作的概念和应用",
+      "date": "2026-08-17",
+      "category": "电工基础",
+      "mdPath": "/beta/blog/8/content.md",
+      "cover": "/beta/blog/8/cover.jpg"
+    },
+    {
+      "title": "电路图的识读基础",
+      "subtitle": "电路图的识读基础--CA6140车床电气控制线路原理图举例",
+      "date": "2026-08-18",
+      "category": "工厂电气",
+      "mdPath": "/beta/blog/9/content.md",
+      "cover": "/beta/blog/9/cover.jpg"
+    }
+  ]
+}

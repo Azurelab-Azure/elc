@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>博客导览 · 电路仿真实验室</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg-0: #f5f5f7;
+      --bg-1: rgba(255, 255, 255, 0.72);
+      --bg-2: rgba(255, 255, 255, 0.5);
+      --border: rgba(255, 255, 255, 0.9);
+      --border-line: rgba(0, 0, 0, 0.08);
+      --text-1: #0a0a0c;
+      --text-2: #3a3a40;
+      --text-3: #6a6a72;
+      --text-4: #8a8a92;
+      --blue: #0071e3;
+      --blue-hover: #0077ed;
+      --blue-soft: rgba(0, 113, 227, 0.1);
+      --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02);
+      --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.06), 0 2px 6px rgba(0, 0, 0, 0.03);
+      --shadow-lg: 0 20px 48px rgba(0, 0, 0, 0.1);
+      --glass-blur: 24px;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg-0: #05060a;
+        --bg-1: rgba(28, 28, 32, 0.72);
+        --bg-2: rgba(40, 40, 46, 0.5);
+        --border: rgba(255, 255, 255, 0.12);
+        --border-line: rgba(255, 255, 255, 0.08);
+        --text-1: #ffffff;
+        --text-2: #d0d0d5;
+        --text-3: #a0a0a8;
+        --text-4: #7a7a82;
+        --blue: #0a84ff;
+        --blue-hover: #409cff;
+        --blue-soft: rgba(10, 132, 255, 0.18);
+        --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.4);
+        --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.5);
+        --shadow-lg: 0 20px 48px rgba(0, 0, 0, 0.6);
+        --glass-blur: 28px;
+      }
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Helvetica Neue', sans-serif;
+      background: var(--bg-0);
+      color: var(--text-1);
+      line-height: 1.5;
+      letter-spacing: -0.022em;
+      min-height: 100vh;
+      padding: 80px 24px 120px;
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 56px;
+    }
+
+    .header-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 16px;
+      background: var(--bg-1);
+      border: 1px solid var(--border);
+      border-radius: 980px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--blue);
+      margin-bottom: 24px;
+      backdrop-filter: blur(var(--glass-blur));
+      -webkit-backdrop-filter: blur(var(--glass-blur));
+      box-shadow: var(--shadow-md);
+    }
+
+    .header-badge svg {
+      width: 14px;
+      height: 14px;
+    }
+
+    .header h1 {
+      font-size: clamp(40px, 6vw, 72px);
+      font-weight: 800;
+      letter-spacing: -0.04em;
+      line-height: 1.05;
+      margin-bottom: 16px;
+    }
+
+    .header-gradient {
+      background: linear-gradient(135deg, #0071e3 0%, #af52de 50%, #34c759 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .header p {
+      font-size: 17px;
+      color: var(--text-2);
+      font-weight: 500;
+    }
+
+    .filter-bar {
+      display: flex;
+      gap: 12px;
+      padding: 14px;
+      margin-bottom: 32px;
+      background: var(--bg-1);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      backdrop-filter: blur(var(--glass-blur));
+      -webkit-backdrop-filter: blur(var(--glass-blur));
+      box-shadow: var(--shadow-md);
+      flex-wrap: wrap;
+    }
+
+    .search {
+      position: relative;
+      flex: 1;
+      min-width: 200px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 0 16px;
+      background: var(--bg-2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      color: var(--text-3);
+    }
+
+    .search svg {
+      width: 16px;
+      height: 16px;
+      flex-shrink: 0;
+    }
+
+    .search input {
+      flex: 1;
+      padding: 12px 0;
+      background: transparent;
+      border: none;
+      font-size: 14px;
+      color: var(--text-1);
+      outline: none;
+      font-family: inherit;
+    }
+
+    .search input::placeholder {
+      color: var(--text-4);
+    }
+
+    .select {
+      padding: 12px 16px;
+      background: var(--bg-2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      font-size: 14px;
+      color: var(--text-1);
+      cursor: pointer;
+      font-family: inherit;
+      outline: none;
+    }
+
+    .post-list {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 20px;
+    }
+
+    .post-card {
+      display: flex;
+      flex-direction: column;
+      background: var(--bg-1);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      overflow: hidden;
+      text-decoration: none;
+      color: inherit;
+      backdrop-filter: blur(var(--glass-blur));
+      -webkit-backdrop-filter: blur(var(--glass-blur));
+      box-shadow: var(--shadow-sm);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      cursor: pointer;
+    }
+
+    .post-card:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-lg);
+      border-color: var(--blue);
+    }
+
+    .post-cover {
+      aspect-ratio: 16 / 10;
+      background: var(--bg-2);
+      overflow: hidden;
+      position: relative;
+    }
+
+    .post-cover img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .post-card:hover .post-cover img {
+      transform: scale(1.05);
+    }
+
+    .post-cover-placeholder {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-4);
+      background: linear-gradient(135deg, var(--bg-2), var(--bg-1));
+    }
+
+    .post-cover-placeholder svg {
+      width: 48px;
+      height: 48px;
+      opacity: 0.5;
+    }
+
+    .post-body {
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+    }
+
+    .post-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .post-category {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--blue);
+      background: var(--blue-soft);
+      padding: 4px 10px;
+      border-radius: 6px;
+      letter-spacing: 0.02em;
+    }
+
+    .post-date {
+      font-size: 12px;
+      color: var(--text-4);
+      font-weight: 500;
+    }
+
+    .post-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text-1);
+      letter-spacing: -0.025em;
+      margin-bottom: 6px;
+      line-height: 1.3;
+    }
+
+    .post-subtitle {
+      font-size: 14px;
+      color: var(--text-2);
+      line-height: 1.55;
+      margin-bottom: 14px;
+      flex: 1;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .post-action {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 13px;
+      color: var(--blue);
+      font-weight: 600;
+      transition: all 0.2s ease;
+    }
+
+    .post-action svg {
+      width: 14px;
+      height: 14px;
+    }
+
+    .post-card:hover .post-action {
+      transform: translateX(3px);
+    }
+
+    .empty {
+      grid-column: 1 / -1;
+      text-align: center;
+      padding: 100px 40px;
+      background: var(--bg-1);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      backdrop-filter: blur(var(--glass-blur));
+      -webkit-backdrop-filter: blur(var(--glass-blur));
+      box-shadow: var(--shadow-md);
+    }
+
+    .empty-icon {
+      width: 64px;
+      height: 64px;
+      margin: 0 auto 20px;
+      color: var(--text-4);
+      opacity: 0.5;
+    }
+
+    .empty-icon svg {
+      width: 100%;
+      height: 100%;
+    }
+
+    .empty-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text-2);
+      margin-bottom: 6px;
+    }
+
+    .empty-desc {
+      font-size: 13px;
+      color: var(--text-4);
+    }
+
+    .reader-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      background: rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+
+    .reader-overlay.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .reader-modal {
+      width: 100%;
+      max-width: 800px;
+      max-height: 90vh;
+      background: var(--bg-1);
+      border: 1px solid var(--border);
+      border-radius: 28px;
+      backdrop-filter: blur(var(--glass-blur));
+      -webkit-backdrop-filter: blur(var(--glass-blur));
+      box-shadow: var(--shadow-lg);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      transform: scale(0.95) translateY(20px);
+      transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+    }
+
+    .reader-overlay.active .reader-modal {
+      transform: scale(1) translateY(0);
+    }
+
+    .reader-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 28px 32px;
+      border-bottom: 1px solid var(--border-line);
+    }
+
+    .reader-head-left {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .reader-category {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--blue);
+      background: var(--blue-soft);
+      padding: 4px 10px;
+      border-radius: 6px;
+      margin-bottom: 10px;
+    }
+
+    .reader-title {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--text-1);
+      letter-spacing: -0.025em;
+      line-height: 1.25;
+    }
+
+    .reader-close {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-3);
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: all 0.2s ease;
+    }
+
+    .reader-close:hover {
+      background: var(--bg-2);
+      color: var(--text-1);
+    }
+
+    .reader-close svg {
+      width: 18px;
+      height: 18px;
+    }
+
+    .reader-body {
+      padding: 32px;
+      overflow-y: auto;
+      flex: 1;
+      font-size: 16px;
+      line-height: 1.7;
+      color: var(--text-2);
+    }
+
+    .reader-body h1 { font-size: 26px; font-weight: 700; color: var(--text-1); margin: 28px 0 16px; letter-spacing: -0.025em; }
+    .reader-body h1:first-child { margin-top: 0; }
+    .reader-body h2 { font-size: 21px; font-weight: 700; color: var(--text-1); margin: 28px 0 12px; padding-bottom: 8px; border-bottom: 1px solid var(--border-line); letter-spacing: -0.02em; }
+    .reader-body h3 { font-size: 17px; font-weight: 600; color: var(--text-1); margin: 20px 0 8px; }
+    .reader-body p { margin: 12px 0; }
+    .reader-body ul, .reader-body ol { margin: 12px 0; padding-left: 24px; }
+    .reader-body li { margin: 6px 0; }
+    .reader-body code { font-family: 'SF Mono', ui-monospace, Menlo, monospace; font-size: 0.9em; background: var(--bg-2); padding: 2px 6px; border-radius: 4px; }
+    .reader-body pre { background: #1d1d1f; color: #f5f5f7; padding: 20px; border-radius: 12px; overflow-x: auto; margin: 16px 0; font-size: 14px; line-height: 1.6; }
+    .reader-body pre code { background: none; padding: 0; color: inherit; }
+    .reader-body table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 14px; }
+    .reader-body th, .reader-body td { padding: 10px 14px; text-align: left; border-bottom: 1px solid var(--border-line); }
+    .reader-body th { font-weight: 600; background: var(--bg-2); }
+    .reader-body blockquote { border-left: 3px solid var(--blue); padding-left: 16px; margin: 16px 0; color: var(--text-3); }
+    .reader-body a { color: var(--blue); text-decoration: none; }
+    .reader-body img { max-width: 100%; border-radius: 12px; margin: 12px 0; }
+
+    .footer {
+      margin-top: 64px;
+      padding-top: 32px;
+      border-top: 1px solid var(--border-line);
+      text-align: center;
+      font-size: 12px;
+      color: var(--text-4);
+      line-height: 1.7;
+    }
+
+    .footer a {
+      color: var(--text-3);
+      text-decoration: none;
+      transition: color 0.2s ease;
+    }
+
+    .footer a:hover {
+      color: var(--blue);
+    }
+
+    .footer-sep {
+      margin: 0 8px;
+      opacity: 0.5;
+    }
+
+    @media (max-width: 768px) {
+      body { padding: 48px 16px 80px; }
+      .header { margin-bottom: 40px; }
+      .header p { font-size: 15px; }
+      .filter-bar { flex-direction: column; }
+      .post-list { grid-template-columns: 1fr; }
+      .reader-header { padding: 20px 24px; }
+      .reader-title { font-size: 20px; }
+      .reader-body { padding: 24px; font-size: 15px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header class="header">
+      <div class="header-badge">
+        <svg viewBox="0 0 1024 1024" fill="currentColor">
+          <path d="M192 192a64 64 0 0 1 64-64h512a64 64 0 0 1 64 64v640a64 64 0 0 1-64 64H256a64 64 0 0 1-64-64V192z m64 0v640h512V192H256z m128 128h256v64H384v-64z m0 192h256v64H384v-64z m0 192h160v64H384v-64z"/>
+        </svg>
+        博客导览
+      </div>
+      
+    </header>
+
+    <div class="filter-bar">
+      <div class="search">
+        <svg viewBox="0 0 1024 1024" fill="currentColor">
+          <path d="M448 128a320 320 0 1 0 0 640 320 320 0 0 0 0-640z m0 64a256 256 0 1 1 0 512 256 256 0 0 1 0-512z m224 480 192 192a32 32 0 0 1-45.248 45.248l-192-192a32 32 0 0 1 45.248-45.248z"/>
+        </svg>
+        <input type="text" id="searchInput" placeholder="搜索文章标题或内容..." />
+      </div>
+
+      <select class="select" id="categorySelect">
+        <option value="all">全部分类</option>
+      </select>
+    </div>
+
+    <div class="post-list" id="postList"></div>
+
+    <footer class="footer">
+      <p>电路仿真实验室 · 博客导览</p>
+      <p>
+        <a href="/">返回首页</a>
+        <span class="footer-sep">·</span>
+        <a href="/settings">设置</a>
+        <span class="footer-sep">·</span>
+        <a href="mailto:chzurelab@outlook.com">联系</a>
+      </p>
+    </footer>
+  </div>
+
+  <div class="reader-overlay" id="readerOverlay">
+    <div class="reader-modal">
+      <div class="reader-header">
+        <div class="reader-head-left">
+          <span class="reader-category" id="readerCategory"></span>
+          <h2 class="reader-title" id="readerTitle"></h2>
+        </div>
+        <button class="reader-close" id="readerClose">
+          <svg viewBox="0 0 1024 1024" fill="currentColor">
+            <path d="M512 456.96 739.52 229.44a32 32 0 0 1 45.248 45.248L557.248 512l227.52 227.52a32 32 0 0 1-45.248 45.248L512 557.248 284.48 784.768a32 32 0 0 1-45.248-45.248L466.752 512 239.232 284.48a32 32 0 0 1 45.248-45.248L512 466.752z"/>
+          </svg>
+        </button>
+      </div>
+      <div class="reader-body" id="readerBody"></div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/markdown-it@14.1.0/dist/markdown-it.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@11.9.0/styles/github-dark.min.css">
+<script src="https://cdn.jsdelivr.net/npm/highlight.js@11.9.0/lib/common.min.js"></script>
+
+<script>
+  // 初始化 markdown-it 解析器
+  const md = window.markdownit({
+    html: true,        // 允许 HTML 标签
+    linkify: true,     // 自动识别链接
+    typographer: true, // 智能排版
+    breaks: false,     // 不将换行转为 <br>
+    highlight: function (str, lang) {
+      if (lang && hljs.getLanguage(lang)) {
+        try {
+          return '<pre class="hljs"><code>' +
+                 hljs.highlight(str, { language: lang, ignoreIllegals: true }).value +
+                 '</code></pre>';
+        } catch (__) {}
+      }
+      return '<pre class="hljs"><code>' + md.utils.escapeHtml(str) + '</code></pre>';
+    }
+  });
+
+  let allPosts = [];
+
+  // 加载文章索引
+  async function loadPosts() {
+    try {
+      const res = await fetch('/beta/blog/catalog.json');
+      if (!res.ok) throw new Error('catalog not found');
+      const data = await res.json();
+      allPosts = (data.posts || []).sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+      renderPosts(allPosts);
+      buildCategories();
+    } catch (err) {
+      console.warn('加载博客索引失败:', err);
+      showEmpty();
+    }
+  }
+
+  // 构建分类下拉
+  function buildCategories() {
+    const select = document.getElementById('categorySelect');
+    const categories = new Set();
+    allPosts.forEach(p => { if (p.category) categories.add(p.category); });
+
+    Array.from(categories).sort().forEach(cat => {
+      const opt = document.createElement('option');
+      opt.value = cat;
+      opt.textContent = cat;
+      select.appendChild(opt);
+    });
+
+    select.addEventListener('change', filterPosts);
+  }
+
+  // 渲染文章卡片列表
+  function renderPosts(posts) {
+    const list = document.getElementById('postList');
+
+    if (posts.length === 0) {
+      list.innerHTML = `
+        <div class="empty">
+          <div class="empty-icon">
+            <svg viewBox="0 0 1024 1024" fill="currentColor">
+              <path d="M192 192a64 64 0 0 1 64-64h512a64 64 0 0 1 64 64v640a64 64 0 0 1-64 64H256a64 64 0 0 1-64-64V192z"/>
+            </svg>
+          </div>
+          <p class="empty-title">暂无文章</p>
+          <p class="empty-desc">请将文章放到 public/beta/blog/ 目录</p>
+        </div>
+      `;
+      return;
+    }
+
+    list.innerHTML = posts.map((p, i) => `
+      <a class="post-card" data-index="${i}">
+        <div class="post-cover">
+          ${p.cover
+            ? `<img src="${p.cover}" alt="${p.title}" onerror="this.style.display='none';this.parentElement.innerHTML='<div class=\\'post-cover-placeholder\\'><svg viewBox=\\'0 0 1024 1024\\' fill=\\'currentColor\\'><path d=\\'M192 192a64 64 0 0 1 64-64h512a64 64 0 0 1 64 64v640a64 64 0 0 1-64 64H256a64 64 0 0 1-64-64V192z\\'/></svg></div>'" />`
+            : `<div class="post-cover-placeholder"><svg viewBox="0 0 1024 1024" fill="currentColor"><path d="M192 192a64 64 0 0 1 64-64h512a64 64 0 0 1 64 64v640a64 64 0 0 1-64 64H256a64 64 0 0 1-64-64V192z"/></svg></div>`
+          }
+        </div>
+        <div class="post-body">
+          <div class="post-head">
+            ${p.category ? `<span class="post-category">${p.category}</span>` : ''}
+            ${p.date ? `<span class="post-date">${p.date}</span>` : ''}
+          </div>
+          <h3 class="post-title">${p.title || ''}</h3>
+          ${p.subtitle ? `<p class="post-subtitle">${p.subtitle}</p>` : ''}
+          <span class="post-action">
+            阅读全文
+            <svg viewBox="0 0 1024 1024" fill="currentColor">
+              <path d="M633.6 512 316.8 195.2a32 32 0 0 1 45.248-45.248l339.2 339.2a32 32 0 0 1 0 45.248l-339.2 339.2a32 32 0 0 1-45.248-45.248L633.6 512z"/>
+            </svg>
+          </span>
+        </div>
+      </a>
+    `).join('');
+
+    list.querySelectorAll('.post-card').forEach(card => {
+      card.addEventListener('click', () => {
+        const index = parseInt(card.dataset.index);
+        const post = posts[index];
+        if (post) openPost(post);
+      });
+    });
+  }
+
+  // 筛选
+  function filterPosts() {
+    const query = document.getElementById('searchInput').value.trim().toLowerCase();
+    const category = document.getElementById('categorySelect').value;
+
+    let filtered = allPosts;
+    if (category !== 'all') {
+      filtered = filtered.filter(p => p.category === category);
+    }
+    if (query) {
+      filtered = filtered.filter(p =>
+        (p.title || '').toLowerCase().includes(query) ||
+        (p.subtitle || '').toLowerCase().includes(query)
+      );
+    }
+    renderPosts(filtered);
+  }
+
+  // 打开文章弹窗，用 markdown-it 渲染
+  async function openPost(post) {
+    const overlay = document.getElementById('readerOverlay');
+    const body = document.getElementById('readerBody');
+    const title = document.getElementById('readerTitle');
+    const category = document.getElementById('readerCategory');
+
+    title.textContent = post.title || '';
+    category.textContent = post.category || '未分类';
+    body.innerHTML = '<p>加载中...</p>';
+    overlay.classList.add('active');
+
+    try {
+      const res = await fetch(post.mdPath);
+      if (!res.ok) throw new Error('文章不存在');
+      const text = await res.text();
+      // 关键：用 markdown-it 渲染，替代手写函数
+      body.innerHTML = md.render(text);
+    } catch (err) {
+      body.innerHTML = `<p>加载失败：${err.message}</p>`;
+    }
+  }
+
+  // 关闭弹窗
+  document.getElementById('readerClose').addEventListener('click', () => {
+    document.getElementById('readerOverlay').classList.remove('active');
+  });
+
+  document.getElementById('readerOverlay').addEventListener('click', (e) => {
+    if (e.target.id === 'readerOverlay') {
+      e.target.classList.remove('active');
+    }
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      document.getElementById('readerOverlay').classList.remove('active');
+    }
+  });
+
+  document.getElementById('searchInput').addEventListener('input', filterPosts);
+
+  // 启动
+  loadPosts();
+</script>
+</body>
+</html>
