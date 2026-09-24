@@ -14,6 +14,16 @@
       "tags": ["电感", "元件"]
     },
     {
+      "fileName": "电磁继电器",
+      "title": "电磁继电器",
+      "description": "认识电磁继电器的工具",
+      "complexity": "中级",
+      "author": "Azure_Lab",
+      "date": "2026-09-13",
+      "thumbnail": "/beta/images/电磁继电器.png",
+      "tags": ["电磁继电器", "元件"]
+    },
+    {
       "fileName": "低压断路器",
       "title": "低压断路器的认识",
       "description": "一个用于仿真低压断路器工作原理的工具",
