@@ -1,0 +1,2245 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>接触器 · 仿真与知识点解析</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --glass-bg: rgba(255, 255, 255, 0.45);
+    --glass-bg-strong: rgba(255, 255, 255, 0.6);
+    --glass-border: rgba(255, 255, 255, 0.7);
+    --text: #1e3350;
+    --text-2: #5a7a9a;
+    --text-3: #7a9aba;
+    --blue: #1e88e5;
+    --orange: #f9a825;
+    --green: #34c759;
+    --red: #e53935;
+    --radius-lg: 24px;
+    --radius-md: 18px;
+    --radius-sm: 12px;
+  }
+
+  html, body {
+    height: 100%;
+    overflow: hidden;
+  }
+
+  body {
+    background: linear-gradient(145deg, #dce8f5 0%, #c8d8ec 50%, #d4e2f0 100%);
+    font-family: 'Inter', 'Microsoft YaHei', system-ui, -apple-system, sans-serif;
+    color: var(--text);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  .app {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    padding: 12px;
+    gap: 10px;
+  }
+
+  /* ============ 顶部标题栏 ============ */
+  .glass-header {
+    flex-shrink: 0;
+    height: 54px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 24px;
+    background: var(--glass-bg);
+    backdrop-filter: blur(28px) saturate(1.6);
+    -webkit-backdrop-filter: blur(28px) saturate(1.6);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-md);
+    box-shadow:
+      0 8px 32px rgba(0, 30, 60, 0.1),
+      inset 0 1px 0 rgba(255, 255, 255, 0.9),
+      inset 0 -1px 0 rgba(0, 0, 0, 0.03);
+  }
+
+  .header-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .header-left .dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--green);
+    box-shadow: 0 0 16px rgba(52, 199, 89, 0.6), 0 0 4px var(--green);
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(0.85); }
+  }
+
+  .header-left h1 {
+    font-size: 0.92rem;
+    font-weight: 800;
+    color: var(--text);
+    letter-spacing: 0.3px;
+  }
+
+  .header-right {
+    font-family: 'SF Mono', 'Consolas', monospace;
+    font-size: 0.68rem;
+    color: var(--text-3);
+    letter-spacing: 0.8px;
+    background: rgba(255, 255, 255, 0.5);
+    padding: 5px 13px;
+    border-radius: 40px;
+    border: 1px solid rgba(255, 255, 255, 0.7);
+  }
+
+  /* ============ 主内容区 ============ */
+  .main-content {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    border-radius: var(--radius-lg);
+    scroll-behavior: smooth;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(176, 200, 224, 0.7) transparent;
+    min-height: 0;
+  }
+
+  .main-content::-webkit-scrollbar { width: 8px; }
+  .main-content::-webkit-scrollbar-track { background: transparent; }
+  .main-content::-webkit-scrollbar-thumb {
+    background: rgba(176, 200, 224, 0.6);
+    border-radius: 8px;
+  }
+  .main-content::-webkit-scrollbar-thumb:hover {
+    background: rgba(150, 180, 210, 0.8);
+  }
+
+  .section {
+    display: none;
+    padding: 4px 2px 16px;
+    animation: fadeSlideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .section.active { display: block; }
+
+  @keyframes fadeSlideIn {
+    from { opacity: 0; transform: translateY(14px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ============ 仿真与解析 双栏布局 ============ */
+  .sim-layout {
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+  }
+
+  .sim-panel {
+    flex: 0 0 460px;
+    position: sticky;
+    top: 0;
+  }
+
+  .sim-card {
+    background: var(--glass-bg);
+    backdrop-filter: blur(24px) saturate(1.5);
+    -webkit-backdrop-filter: blur(24px) saturate(1.5);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-lg);
+    padding: 14px;
+    box-shadow:
+      0 8px 32px rgba(0, 30, 60, 0.08),
+      inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  }
+
+  .sim-card canvas {
+    display: block;
+    width: 100%;
+    height: auto;
+    border-radius: 16px;
+    cursor: pointer;
+    background: rgba(255, 255, 255, 0.2);
+  }
+
+  .sim-status {
+    margin-top: 12px;
+    padding: 11px 18px;
+    border-radius: 100px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-align: center;
+    font-family: 'SF Mono', 'Consolas', 'Microsoft YaHei', monospace;
+    transition: all 0.35s ease;
+    border: 1.5px solid rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+  }
+
+  .sim-status.on {
+    color: #1b6e3e;
+    background: rgba(52, 199, 89, 0.22);
+    border-color: rgba(52, 199, 89, 0.5);
+    box-shadow: 0 4px 16px rgba(52, 199, 89, 0.15);
+  }
+
+  .sim-status.off {
+    color: #1a4a8a;
+    background: rgba(30, 136, 229, 0.18);
+    border-color: rgba(30, 136, 229, 0.45);
+    box-shadow: 0 4px 16px rgba(30, 136, 229, 0.12);
+  }
+
+  .sim-hint {
+    margin-top: 10px;
+    text-align: center;
+    font-size: 0.7rem;
+    color: var(--text-3);
+    letter-spacing: 0.3px;
+  }
+
+  .sim-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 16px;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid rgba(255, 255, 255, 0.5);
+  }
+
+  .sim-legend-item {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 0.68rem;
+    font-weight: 700;
+    color: var(--text-2);
+  }
+
+  .sim-legend-color {
+    width: 12px;
+    height: 12px;
+    border-radius: 4px;
+    border: 1.5px solid rgba(255, 255, 255, 0.7);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06);
+  }
+
+  .detail-panel {
+    flex: 1;
+    min-width: 0;
+  }
+
+  /* ============ 玻璃卡片 ============ */
+  .glass-card {
+    background: var(--glass-bg);
+    backdrop-filter: blur(24px) saturate(1.5);
+    -webkit-backdrop-filter: blur(24px) saturate(1.5);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-lg);
+    padding: 24px 26px;
+    box-shadow:
+      0 8px 32px rgba(0, 30, 60, 0.08),
+      inset 0 1px 0 rgba(255, 255, 255, 0.9);
+    margin-bottom: 14px;
+  }
+
+  .glass-card:last-child { margin-bottom: 0; }
+
+  /* ============ 标题 ============ */
+  .section-title {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 8px;
+  }
+
+  .section-title svg {
+    width: 26px;
+    height: 26px;
+    stroke: var(--blue);
+    stroke-width: 1.8;
+    fill: none;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    flex-shrink: 0;
+  }
+
+  .section-title h2 {
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: var(--text);
+    letter-spacing: 0.2px;
+  }
+
+  .section-subtitle {
+    font-size: 0.78rem;
+    color: var(--text-3);
+    margin-bottom: 20px;
+    padding-left: 38px;
+    letter-spacing: 0.2px;
+  }
+
+  /* ============ 正文 ============ */
+  .glass-card p {
+    font-size: 0.87rem;
+    line-height: 1.8;
+    color: #2c4058;
+    margin-bottom: 13px;
+  }
+
+  .glass-card p:last-child { margin-bottom: 0; }
+
+  .glass-card strong {
+    color: var(--text);
+    font-weight: 700;
+  }
+
+  /* ============ 高亮框 ============ */
+  .note {
+    border-radius: var(--radius-md);
+    padding: 15px 18px;
+    margin: 15px 0;
+    font-size: 0.84rem;
+    line-height: 1.75;
+    background: rgba(255, 255, 255, 0.55);
+    border-left: 4px solid var(--blue);
+    color: #2c4058;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  }
+
+  .note.orange { border-left-color: var(--orange); }
+  .note.green { border-left-color: var(--green); }
+  .note.red { border-left-color: var(--red); }
+
+  .note-title {
+    display: block;
+    font-weight: 800;
+    font-size: 0.82rem;
+    margin-bottom: 6px;
+    color: var(--text);
+    letter-spacing: 0.3px;
+  }
+
+  /* ============ 卡片网格 ============ */
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 11px;
+    margin-top: 15px;
+  }
+
+  .mini-card {
+    background: rgba(255, 255, 255, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.7);
+    border-radius: var(--radius-md);
+    padding: 16px 18px;
+    box-shadow: 0 4px 16px rgba(0, 30, 60, 0.04), inset 0 1px 0 rgba(255, 255, 255, 0.8);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .mini-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0, 30, 60, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  }
+
+  .mini-card h4 {
+    font-size: 0.86rem;
+    font-weight: 800;
+    margin-bottom: 7px;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .mini-card h4 .marker {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .mini-card p {
+    font-size: 0.79rem;
+    line-height: 1.7;
+    color: var(--text-2);
+    margin: 0;
+  }
+
+  /* ============ 列表 ============ */
+  .glass-card ul {
+    list-style: none;
+    padding: 0;
+    margin: 11px 0;
+  }
+
+  .glass-card ul li {
+    position: relative;
+    padding: 6px 0 6px 22px;
+    font-size: 0.84rem;
+    line-height: 1.7;
+    color: #2c4058;
+  }
+
+  .glass-card ul li::before {
+    content: "";
+    position: absolute;
+    left: 5px;
+    top: 14px;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--blue);
+  }
+
+  /* ============ 参数表格 ============ */
+  .param-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    margin: 15px 0;
+    font-size: 0.82rem;
+    background: rgba(255, 255, 255, 0.45);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.7);
+  }
+
+  .param-table th {
+    background: rgba(255, 255, 255, 0.6);
+    padding: 11px 14px;
+    text-align: left;
+    font-weight: 800;
+    color: var(--text);
+    font-size: 0.79rem;
+    letter-spacing: 0.3px;
+    border-bottom: 1px solid rgba(176, 200, 224, 0.4);
+  }
+
+  .param-table td {
+    padding: 10px 14px;
+    color: #2c4058;
+    border-bottom: 1px solid rgba(176, 200, 224, 0.25);
+    line-height: 1.6;
+  }
+
+  .param-table tr:last-child td { border-bottom: none; }
+  .param-table tr:hover td { background: rgba(255, 255, 255, 0.4); }
+
+  /* ============ 示意图 ============ */
+  .diagram-wrap {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 18px 14px;
+    background: rgba(255, 255, 255, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.65);
+    border-radius: var(--radius-lg);
+    margin: 16px 0;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  }
+
+  .diagram-wrap svg { max-width: 100%; height: auto; }
+
+  .diagram-caption {
+    text-align: center;
+    font-size: 0.73rem;
+    color: var(--text-3);
+    margin-top: -8px;
+    margin-bottom: 14px;
+    letter-spacing: 0.3px;
+  }
+
+  /* ============ 流程步骤 ============ */
+  .flow {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    margin: 14px 0;
+  }
+
+  .flow-step {
+    display: flex;
+    gap: 14px;
+    position: relative;
+  }
+
+  .flow-step:not(:last-child)::before {
+    content: "";
+    position: absolute;
+    left: 16px;
+    top: 38px;
+    bottom: -6px;
+    width: 2px;
+    background: rgba(176, 200, 224, 0.6);
+  }
+
+  .flow-num {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.7);
+    border: 2px solid rgba(30, 136, 229, 0.5);
+    color: var(--blue);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 0.8rem;
+    flex-shrink: 0;
+    box-shadow: 0 4px 12px rgba(0, 30, 60, 0.06);
+    z-index: 1;
+  }
+
+  .flow-step.orange .flow-num { border-color: rgba(249, 168, 37, 0.6); color: var(--orange); }
+  .flow-step.green .flow-num { border-color: rgba(52, 199, 89, 0.6); color: var(--green); }
+
+  .flow-body {
+    padding-bottom: 18px;
+    flex: 1;
+  }
+
+  .flow-body h4 {
+    font-size: 0.85rem;
+    font-weight: 800;
+    color: var(--text);
+    margin-bottom: 3px;
+  }
+
+  .flow-body p {
+    font-size: 0.79rem;
+    line-height: 1.7;
+    color: var(--text-2);
+    margin: 0;
+  }
+
+  /* ============ 答题器 ============ */
+  .quiz-progress {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .quiz-progress-bar {
+    flex: 1;
+    height: 8px;
+    background: rgba(255, 255, 255, 0.55);
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05);
+  }
+
+  .quiz-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--blue), #4fc3f7);
+    border-radius: 8px;
+    transition: width 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: 0 0 12px rgba(30, 136, 229, 0.4);
+  }
+
+  .quiz-progress-text {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--text-2);
+    font-family: 'SF Mono', 'Consolas', monospace;
+    white-space: nowrap;
+  }
+
+  .quiz-question {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--text);
+    line-height: 1.7;
+    margin-bottom: 16px;
+    padding: 16px 18px;
+    background: rgba(255, 255, 255, 0.5);
+    border-radius: var(--radius-md);
+    border: 1px solid rgba(255, 255, 255, 0.7);
+  }
+
+  .quiz-option {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    text-align: left;
+    background: rgba(255, 255, 255, 0.45);
+    border: 1.5px solid rgba(255, 255, 255, 0.65);
+    border-radius: var(--radius-md);
+    padding: 13px 16px;
+    margin-bottom: 9px;
+    font-size: 0.85rem;
+    color: var(--text);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: inherit;
+    font-weight: 600;
+    box-shadow: 0 2px 8px rgba(0, 30, 60, 0.03);
+  }
+
+  .quiz-option:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.7);
+    border-color: rgba(255, 255, 255, 0.95);
+    transform: translateX(4px);
+    box-shadow: 0 4px 16px rgba(0, 30, 60, 0.06);
+  }
+
+  .quiz-option .option-key {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.8);
+    border: 1.5px solid rgba(176, 200, 224, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.68rem;
+    font-weight: 800;
+    color: var(--text-2);
+    flex-shrink: 0;
+    transition: all 0.2s ease;
+  }
+
+  .quiz-option.correct {
+    background: rgba(52, 199, 89, 0.18);
+    border-color: rgba(52, 199, 89, 0.65);
+    color: #1b6e3e;
+  }
+  .quiz-option.correct .option-key {
+    background: var(--green);
+    border-color: var(--green);
+    color: #fff;
+  }
+
+  .quiz-option.wrong {
+    background: rgba(229, 57, 53, 0.14);
+    border-color: rgba(229, 57, 53, 0.55);
+    color: #b71c1c;
+  }
+  .quiz-option.wrong .option-key {
+    background: var(--red);
+    border-color: var(--red);
+    color: #fff;
+  }
+
+  .quiz-option:disabled { cursor: default; }
+  .quiz-option.dimmed { opacity: 0.55; }
+
+  .quiz-feedback {
+    margin-top: 8px;
+    padding: 15px 18px;
+    border-radius: var(--radius-md);
+    font-size: 0.83rem;
+    line-height: 1.75;
+    display: none;
+    animation: fadeSlideIn 0.35s ease;
+  }
+
+  .quiz-feedback.show { display: block; }
+
+  .quiz-feedback.correct {
+    background: rgba(52, 199, 89, 0.16);
+    border: 1px solid rgba(52, 199, 89, 0.45);
+    color: #1b6e3e;
+  }
+
+  .quiz-feedback.wrong {
+    background: rgba(229, 57, 53, 0.12);
+    border: 1px solid rgba(229, 57, 53, 0.4);
+    color: #b71c1c;
+  }
+
+  .quiz-feedback strong {
+    display: block;
+    margin-bottom: 4px;
+    font-size: 0.85rem;
+  }
+
+  .quiz-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 14px;
+  }
+
+  .quiz-next {
+    background: rgba(255, 255, 255, 0.65);
+    border: 1px solid rgba(255, 255, 255, 0.85);
+    border-radius: 100px;
+    padding: 11px 32px;
+    font-size: 0.85rem;
+    font-weight: 800;
+    color: var(--blue);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: inherit;
+    box-shadow: 0 4px 16px rgba(0, 30, 60, 0.06);
+    display: none;
+  }
+
+  .quiz-next.show { display: inline-block; }
+
+  .quiz-next:hover {
+    background: rgba(255, 255, 255, 0.9);
+    box-shadow: 0 6px 24px rgba(0, 30, 60, 0.1);
+    transform: translateY(-1px);
+  }
+
+  .quiz-next:active { transform: scale(0.97); }
+
+  .quiz-result {
+    text-align: center;
+    padding: 28px 18px;
+  }
+
+  .quiz-result .score {
+    font-size: 2.8rem;
+    font-weight: 800;
+    color: var(--blue);
+    line-height: 1;
+    margin-bottom: 8px;
+    font-family: 'SF Mono', 'Consolas', monospace;
+  }
+
+  .quiz-result .score-label {
+    font-size: 0.82rem;
+    color: var(--text-3);
+    margin-bottom: 22px;
+    letter-spacing: 0.5px;
+  }
+
+  .quiz-result .result-msg {
+    font-size: 0.92rem;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 22px;
+  }
+
+  /* ============ 底部 Dock 栏 ============ */
+  .glass-dock {
+    flex-shrink: 0;
+    height: 68px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    padding: 7px 9px;
+    background: var(--glass-bg);
+    backdrop-filter: blur(32px) saturate(1.7);
+    -webkit-backdrop-filter: blur(32px) saturate(1.7);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-lg);
+    box-shadow:
+      0 12px 40px rgba(0, 30, 60, 0.12),
+      inset 0 1px 0 rgba(255, 255, 255, 0.9),
+      inset 0 -1px 0 rgba(0, 0, 0, 0.03);
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: none;
+  }
+
+  .glass-dock::-webkit-scrollbar { display: none; }
+
+  .dock-item {
+    flex: 0 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    padding: 6px 12px;
+    border-radius: 14px;
+    cursor: pointer;
+    transition: all 0.22s ease;
+    border: 1.5px solid transparent;
+    color: var(--text-2);
+    font-size: 0.62rem;
+    font-weight: 700;
+    letter-spacing: 0.2px;
+    white-space: nowrap;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    min-width: 58px;
+  }
+
+  .dock-item:hover {
+    background: rgba(255, 255, 255, 0.5);
+    color: var(--text);
+  }
+
+  .dock-item.active {
+    background: rgba(255, 255, 255, 0.8);
+    border-color: rgba(255, 255, 255, 0.95);
+    color: var(--blue);
+    box-shadow: 0 6px 20px rgba(0, 30, 60, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  }
+
+  .dock-item svg {
+    width: 19px;
+    height: 19px;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    fill: none;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    transition: transform 0.2s ease;
+  }
+
+  .dock-item.active svg { transform: scale(1.08); }
+
+  /* ============ 响应式 ============ */
+  @media (max-width: 1100px) {
+    .sim-layout { flex-direction: column; }
+    .sim-panel { flex: none; width: 100%; position: static; }
+  }
+
+  @media (max-width: 640px) {
+    .app { padding: 8px; gap: 8px; }
+    .glass-header { height: 48px; padding: 0 14px; border-radius: 14px; }
+    .header-left h1 { font-size: 0.78rem; }
+    .header-right { font-size: 0.58rem; padding: 4px 10px; }
+    .glass-card { padding: 18px 16px; border-radius: 18px; }
+    .section-title h2 { font-size: 1rem; }
+    .section-title svg { width: 22px; height: 22px; }
+    .section-subtitle { padding-left: 34px; font-size: 0.72rem; }
+    .glass-dock { height: 62px; padding: 5px 7px; border-radius: 18px; }
+    .dock-item { padding: 5px 9px; min-width: 50px; font-size: 0.56rem; }
+    .dock-item svg { width: 17px; height: 17px; }
+    .quiz-question { font-size: 0.85rem; padding: 13px 14px; }
+    .quiz-option { font-size: 0.78rem; padding: 11px 13px; }
+    .grid { grid-template-columns: 1fr; }
+    .param-table { font-size: 0.74rem; }
+    .param-table th, .param-table td { padding: 8px 11px; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- ============ 顶部标题栏 ============ -->
+  <header class="glass-header">
+    <div class="header-left">
+      <span class="dot"></span>
+      <h1>接触器 · 仿真与知识点解析</h1>
+    </div>
+    <div class="header-right">CONTACTOR</div>
+  </header>
+
+  <!-- ============ 主内容区 ============ -->
+  <main class="main-content" id="mainContent">
+
+    <!-- ==================== 仿真 + 概述 ==================== -->
+    <section class="section active" id="section-overview">
+      <div class="sim-layout">
+        <!-- 仿真面板 -->
+        <div class="sim-panel">
+          <div class="sim-card">
+            <canvas id="simCanvas" width="420" height="620"></canvas>
+            <div class="sim-status off" id="simStatus">线圈断电 · 衔铁释放 · 触点断开</div>
+            <div class="sim-hint">点击仿真画面切换通断状态</div>
+            <div class="sim-legend">
+              <div class="sim-legend-item"><span class="sim-legend-color" style="background:#f9a825;"></span>主触点</div>
+              <div class="sim-legend-item"><span class="sim-legend-color" style="background:#1e88e5;"></span>常开 NO</div>
+              <div class="sim-legend-item"><span class="sim-legend-color" style="background:#e53935;"></span>常闭 NC</div>
+              <div class="sim-legend-item"><span class="sim-legend-color" style="background:#fb8c00;"></span>线圈</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 解析面板 -->
+        <div class="detail-panel">
+          <div class="glass-card">
+            <div class="section-title">
+              <svg viewBox="0 0 24 24">
+                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+                <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+              </svg>
+              <h2>接触器概述</h2>
+            </div>
+            <p class="section-subtitle">自动控制电器 · 远距离频繁通断</p>
+
+            <p>
+              接触器是一种<strong>自动化的控制电器</strong>，主要用于频繁接通或分断交、直流主电路和大容量控制电路。
+              它利用电磁原理，通过线圈的通断电控制触点的闭合与断开，从而实现远距离控制。
+            </p>
+
+            <div class="note">
+              <span class="note-title">核心定义</span>
+              接触器是当线圈通电时，利用电磁吸力使衔铁带动触点闭合，从而接通电路；线圈断电时，依靠弹簧反力使触点断开，
+              切断电路的电器。它是电力拖动与自动控制系统中最常用的电器之一。
+            </div>
+
+            <h3 style="font-size:0.95rem;font-weight:800;margin:20px 0 4px;color:var(--text);">三大组成部分</h3>
+
+            <div class="grid">
+              <div class="mini-card">
+                <h4><span class="marker" style="background:var(--orange);"></span>电磁系统</h4>
+                <p>产生电磁吸力，驱动触点动作。由线圈、铁芯、衔铁和反作用弹簧组成。</p>
+              </div>
+              <div class="mini-card">
+                <h4><span class="marker" style="background:var(--blue);"></span>触头系统</h4>
+                <p>执行电路通断。包括主触头和辅助触头，分别用于主电路和控制电路。</p>
+              </div>
+              <div class="mini-card">
+                <h4><span class="marker" style="background:var(--green);"></span>灭弧系统</h4>
+                <p>熄灭触点分断时产生的电弧。由灭弧罩和栅片组成。</p>
+              </div>
+            </div>
+
+            <h3 style="font-size:0.95rem;font-weight:800;margin:22px 0 4px;color:var(--text);">分类方式</h3>
+
+            <table class="param-table">
+              <thead>
+                <tr><th>分类依据</th><th>类型</th><th>说明</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>电流种类</td><td>交流接触器</td><td>用于交流电路，铁芯需加短路环</td></tr>
+                <tr><td>电流种类</td><td>直流接触器</td><td>用于直流电路，灭弧要求更高</td></tr>
+                <tr><td>操作方式</td><td>电磁式</td><td>最常用，利用电磁吸力操作</td></tr>
+                <tr><td>灭弧介质</td><td>空气式</td><td>普通接触器，靠空气灭弧</td></tr>
+                <tr><td>灭弧介质</td><td>真空式</td><td>真空管灭弧，分断能力强</td></tr>
+              </tbody>
+            </table>
+
+            <h3 style="font-size:0.95rem;font-weight:800;margin:22px 0 4px;color:var(--text);">主要技术参数</h3>
+            <ul>
+              <li><strong>额定电压</strong> — 主触点的额定工作电压，常见 AC 220V / 380V / 660V</li>
+              <li><strong>额定电流</strong> — 主触点的额定工作电流，常见 9A ~ 630A</li>
+              <li><strong>线圈额定电压</strong> — 吸引线圈的电压，如 AC 220V、DC 24V</li>
+              <li><strong>机械寿命</strong> — 无载操作次数，通常数百万次</li>
+              <li><strong>电寿命</strong> — 带载操作次数，通常数十万次</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== 主触点 ==================== -->
+    <section class="section" id="section-main">
+      <div class="glass-card">
+        <div class="section-title">
+          <svg viewBox="0 0 24 24">
+            <path d="M13 2L4 14h6l-1 8 9-12h-6l1-8z"/>
+          </svg>
+          <h2>主触点 · 电力通路</h2>
+        </div>
+        <p class="section-subtitle">承载主电路电流 · 银合金材料 · 灭弧保护</p>
+
+        <p>
+          <strong>主触点</strong>是接触器中承载主电路电流的部件，通常有 3 对（三相）或 4 对（三相 + 中性线）。
+          每对由静触点和动触点组成，动触点随衔铁动作，与静触点接触或分离。
+        </p>
+
+        <div class="diagram-wrap">
+          <svg viewBox="0 0 420 260" width="100%" style="max-width:420px;">
+            <g>
+              <rect x="20" y="20" width="180" height="220" rx="16" fill="rgba(255,255,255,0.55)" stroke="rgba(176,200,224,0.6)" stroke-width="1.5"/>
+              <text x="110" y="48" text-anchor="middle" font-size="12" font-weight="800" fill="#5a7a9a">断开状态</text>
+              <rect x="70" y="70" width="80" height="14" rx="7" fill="#bc8f6a" stroke="#9c7a5a" stroke-width="1.5"/>
+              <circle cx="110" cy="98" r="12" fill="#f9a825" stroke="#b8860b" stroke-width="2.5"/>
+              <circle cx="106" cy="94" r="3.5" fill="rgba(255,255,255,0.7)"/>
+              <circle cx="110" cy="150" r="12" fill="#ffd54f" stroke="#b8860b" stroke-width="2.5"/>
+              <circle cx="106" cy="146" r="3.5" fill="rgba(255,255,255,0.8)"/>
+              <path d="M110 162 L110 186" stroke="#bc8f6a" stroke-width="5" stroke-linecap="round"/>
+              <path d="M140 98 L140 150" stroke="#e53935" stroke-width="1.5" stroke-dasharray="4 3"/>
+              <text x="150" y="128" font-size="10" font-weight="800" fill="#e53935">间隙</text>
+            </g>
+            <g transform="translate(200, 0)">
+              <rect x="20" y="20" width="180" height="220" rx="16" fill="rgba(255,255,255,0.55)" stroke="rgba(52,199,89,0.5)" stroke-width="1.5"/>
+              <text x="110" y="48" text-anchor="middle" font-size="12" font-weight="800" fill="#1b6e3e">闭合状态</text>
+              <rect x="70" y="70" width="80" height="14" rx="7" fill="#bc8f6a" stroke="#9c7a5a" stroke-width="1.5"/>
+              <circle cx="110" cy="98" r="12" fill="#f9a825" stroke="#b8860b" stroke-width="2.5"/>
+              <circle cx="106" cy="94" r="3.5" fill="rgba(255,255,255,0.7)"/>
+              <circle cx="110" cy="110" r="12" fill="#ffd54f" stroke="#b8860b" stroke-width="2.5"/>
+              <circle cx="106" cy="106" r="3.5" fill="rgba(255,255,255,0.8)"/>
+              <path d="M110 122 L110 186" stroke="#bc8f6a" stroke-width="5" stroke-linecap="round"/>
+              <circle cx="110" cy="104" r="20" fill="none" stroke="#34c759" stroke-width="2" stroke-dasharray="5 3"/>
+              <text x="150" y="108" font-size="10" font-weight="800" fill="#1b6e3e">接触</text>
+            </g>
+          </svg>
+        </div>
+        <p class="diagram-caption">主触点断开与闭合状态对比</p>
+
+        <h3 style="font-size:0.95rem;font-weight:800;margin:20px 0 4px;color:var(--text);">结构组成</h3>
+        <ul>
+          <li><strong>静触点</strong> — 固定在壳体上，通过接线端子与外部电路连接，不随衔铁移动</li>
+          <li><strong>动触点</strong> — 安装在触点支架上，随衔铁动作，与静触点接触或分离</li>
+          <li><strong>触点材料</strong> — 银钨合金（AgW）、银镍合金（AgNi）、银氧化镉（AgCdO）等</li>
+          <li><strong>压力弹簧</strong> — 保证触点接触时有足够的压力，减小接触电阻</li>
+          <li><strong>超行程</strong> — 触点接触后继续移动的距离，保证可靠接触</li>
+        </ul>
+
+        <div class="note orange">
+          <span class="note-title">为什么用银合金？</span>
+          银具有优良的导电性和导热性，但纯银质地较软，容易熔焊和磨损。加入钨、镍、氧化镉等元素后，
+          既保持了良好的导电性，又提高了抗电弧烧蚀能力和耐磨性，大大延长触点寿命。
+        </div>
+
+        <h3 style="font-size:0.95rem;font-weight:800;margin:22px 0 4px;color:var(--text);">关键参数</h3>
+        <table class="param-table">
+          <thead>
+            <tr><th>参数</th><th>典型值</th><th>说明</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>额定电压</td><td>AC 220V / 380V / 660V</td><td>主触点长期工作电压</td></tr>
+            <tr><td>额定电流</td><td>9A / 25A / 40A / 95A …</td><td>主触点长期工作电流</td></tr>
+            <tr><td>接触电阻</td><td>小于 100 μΩ</td><td>越小越好，减少发热</td></tr>
+            <tr><td>超行程</td><td>2 ~ 6 mm</td><td>保证接触压力</td></tr>
+            <tr><td>电寿命</td><td>10 万 ~ 100 万次</td><td>带载操作次数</td></tr>
+          </tbody>
+        </table>
+
+        <div class="note">
+          <span class="note-title">重要提示</span>
+          接触器的主触点<strong>只能用于接通和断开电路</strong>，不能用于短路保护。
+          短路保护必须由熔断器或断路器完成，接触器不具备分断短路电流的能力。
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== 辅助触点 ==================== -->
+    <section class="section" id="section-aux">
+      <div class="glass-card">
+        <div class="section-title">
+          <svg viewBox="0 0 24 24">
+            <path d="M4 7h5l2 5h4l2-5h3"/>
+            <path d="M4 17h5l2-5h4l2 5h3"/>
+          </svg>
+          <h2>辅助触点 · 控制信号</h2>
+        </div>
+        <p class="section-subtitle">常开 NO · 常闭 NC · 自锁与互锁</p>
+
+        <p>
+          <strong>辅助触点</strong>用于控制电路，传递信号，不承载主电路电流。它的额定电流较小（通常 5A 或 10A），
+          但却是实现自动控制逻辑的关键部件。常见配置为 2NO + 2NC。
+        </p>
+
+        <div class="diagram-wrap">
+          <svg viewBox="0 0 460 220" width="100%" style="max-width:460px;">
+            <g>
+              <rect x="20" y="20" width="200" height="180" rx="16" fill="rgba(227,242,253,0.6)" stroke="rgba(30,136,229,0.5)" stroke-width="1.5"/>
+              <text x="120" y="48" text-anchor="middle" font-size="13" font-weight="800" fill="#0d47a1">常开 NO</text>
+              <text x="120" y="74" text-anchor="middle" font-size="10" font-weight="700" fill="#5a7a9a">线圈未通电</text>
+              <rect x="60" y="90" width="120" height="10" rx="5" fill="#90caf9" stroke="#1e88e5" stroke-width="1.5"/>
+              <rect x="60" y="140" width="120" height="10" rx="5" fill="#e3f2fd" stroke="#1e88e5" stroke-width="1.5"/>
+              <path d="M120 100 L120 140" stroke="#e53935" stroke-width="2" stroke-dasharray="4 3"/>
+              <text x="120" y="180" text-anchor="middle" font-size="11" font-weight="800" fill="#e53935">断开</text>
+            </g>
+            <g transform="translate(240, 0)">
+              <rect x="0" y="20" width="200" height="180" rx="16" fill="rgba(255,235,238,0.6)" stroke="rgba(229,57,53,0.5)" stroke-width="1.5"/>
+              <text x="100" y="48" text-anchor="middle" font-size="13" font-weight="800" fill="#b71c1c">常闭 NC</text>
+              <text x="100" y="74" text-anchor="middle" font-size="10" font-weight="700" fill="#5a7a9a">线圈未通电</text>
+              <rect x="40" y="90" width="120" height="10" rx="5" fill="#ef9a9a" stroke="#e53935" stroke-width="1.5"/>
+              <rect x="40" y="105" width="120" height="10" rx="5" fill="#ffebee" stroke="#e53935" stroke-width="1.5"/>
+              <circle cx="100" cy="102" r="16" fill="none" stroke="#34c759" stroke-width="2" stroke-dasharray="5 3"/>
+              <text x="100" y="180" text-anchor="middle" font-size="11" font-weight="800" fill="#1b6e3e">闭合</text>
+            </g>
+          </svg>
+        </div>
+        <p class="diagram-caption">线圈未通电时：NO 断开，NC 闭合</p>
+
+        <h3 style="font-size:0.95rem;font-weight:800;margin:20px 0 4px;color:var(--text);">动作逻辑</h3>
+        <table class="param-table">
+          <thead>
+            <tr><th>触点类型</th><th>线圈未通电</th><th>线圈通电后</th><th>线圈断电后</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><strong>常开 NO</strong></td><td>断开</td><td>闭合</td><td>恢复断开</td></tr>
+            <tr><td><strong>常闭 NC</strong></td><td>闭合</td><td>断开</td><td>恢复闭合</td></tr>
+          </tbody>
+        </table>
+
+        <div class="note green">
+          <span class="note-title">记忆口诀</span>
+          “常开常闭，以线圈未通电时的状态为准。” 常开 = 平常开着（断开）；常闭 = 平常闭着（接通）。
+          通电后，常开闭合、常闭断开，这是接触器最基本的逻辑关系。
+        </div>
+
+        <h3 style="font-size:0.95rem;font-weight:800;margin:22px 0 4px;color:var(--text);">典型用途</h3>
+
+        <div class="grid">
+          <div class="mini-card">
+            <h4><span class="marker" style="background:var(--blue);"></span>自锁</h4>
+            <p>将接触器自身的常开触点与启动按钮并联。按下启动按钮后，接触器吸合，常开触点闭合，松手后线圈仍保持通电，实现“自保持”。</p>
+          </div>
+          <div class="mini-card">
+            <h4><span class="marker" style="background:var(--red);"></span>互锁</h4>
+            <p>将两个接触器的常闭触点互相串入对方线圈回路。一个接触器吸合后，其常闭触点断开，切断另一个接触器的线圈回路，防止同时动作。</p>
+          </div>
+          <div class="mini-card">
+            <h4><span class="marker" style="background:var(--green);"></span>信号指示</h4>
+            <p>用辅助触点接通指示灯，显示接触器的工作状态。常开触点闭合时亮灯，表示主电路已接通。</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== 电磁系统 ==================== -->
+    <section class="section" id="section-coil">
+      <div class="glass-card">
+        <div class="section-title">
+          <svg viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="3"/>
+            <path d="M12 2v4M12 18v4M2 12h4M18 12h4"/>
+            <path d="M5.6 5.6l2.8 2.8M15.6 15.6l2.8 2.8M5.6 18.4l2.8-2.8M15.6 8.4l2.8-2.8"/>
+          </svg>
+          <h2>电磁系统 · 动力核心</h2>
+        </div>
+        <p class="section-subtitle">线圈 · 铁芯 · 衔铁 · 反力弹簧 · 短路环</p>
+
+        <p>
+          <strong>电磁系统</strong>是接触器的驱动部件，通电后产生电磁力，吸引衔铁动作，从而带动触点闭合。
+          它由吸引线圈、静铁芯、衔铁、反作用弹簧和短路环等组成。
+        </p>
+
+        <div class="diagram-wrap">
+          <svg viewBox="0 0 420 280" width="100%" style="max-width:420px;">
+            <rect x="60" y="30" width="300" height="220" rx="18" fill="rgba(255,255,255,0.5)" stroke="rgba(176,200,224,0.6)" stroke-width="1.5"/>
+            <rect x="100" y="60" width="220" height="24" rx="8" fill="#b0c4dc" stroke="#8a9bb0" stroke-width="2"/>
+            <text x="210" y="76" text-anchor="middle" font-size="11" font-weight="800" fill="#5a6a80">衔铁</text>
+            <path d="M120 88 L120 108 M120 108 L110 116 L130 124 L110 132 L130 140 L110 148 L120 156 L120 168"
+                  stroke="#90a4ae" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+            <path d="M300 88 L300 108 M300 108 L290 116 L310 124 L290 132 L310 140 L290 148 L300 156 L300 168"
+                  stroke="#90a4ae" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+            <rect x="140" y="180" width="140" height="50" rx="10" fill="#8a9bb0" stroke="#5a6a80" stroke-width="2"/>
+            <text x="210" y="210" text-anchor="middle" font-size="11" font-weight="800" fill="#ffffff">铁芯</text>
+            <ellipse cx="210" cy="160" rx="80" ry="20" fill="#fb8c00" stroke="#bf360c" stroke-width="2"/>
+            <ellipse cx="210" cy="150" rx="70" ry="16" fill="#ffcc80" stroke="#bf360c" stroke-width="1.5"/>
+            <text x="210" y="155" text-anchor="middle" font-size="11" font-weight="800" fill="#bf360c">线圈</text>
+            <path d="M130 160 L80 160" stroke="#bc8f6a" stroke-width="3" stroke-linecap="round"/>
+            <path d="M290 160 L340 160" stroke="#bc8f6a" stroke-width="3" stroke-linecap="round"/>
+            <circle cx="76" cy="160" r="6" fill="#5a6a80"/>
+            <circle cx="344" cy="160" r="6" fill="#5a6a80"/>
+            <text x="210" y="245" text-anchor="middle" font-size="10" font-weight="700" fill="#7a9aba">电磁系统结构示意</text>
+          </svg>
+        </div>
+        <p class="diagram-caption">电磁系统：线圈通电 → 铁芯磁化 → 吸引衔铁</p>
+
+        <h3 style="font-size:0.95rem;font-weight:800;margin:20px 0 4px;color:var(--text);">组成部分</h3>
+        <ul>
+          <li><strong>吸引线圈</strong> — 通电产生磁场，是电磁系统的能量转换部件</li>
+          <li><strong>静铁芯</strong> — 固定不动，被磁化后产生电磁吸力吸引衔铁</li>
+          <li><strong>衔铁</strong> — 可动部件，受磁力吸引向铁芯运动，带动触点动作</li>
+          <li><strong>反作用弹簧</strong> — 线圈断电后将衔铁复位，保证触点可靠断开</li>
+          <li><strong>短路环</strong> — 交流接触器特有，减小振动和噪声</li>
+        </ul>
+
+        <div class="note orange">
+          <span class="note-title">短路环原理</span>
+          交流电每周期两次过零，此时电磁吸力为零。若无短路环，衔铁会在弹簧作用下反复振动，产生噪声和磨损。
+          短路环是一个铜环，套在铁芯部分截面上。交变磁通穿过短路环时产生感应电流，感应电流又产生磁通，
+          使通过短路环的磁通与主磁通产生相位差。两股磁通不同时过零，保证任何时刻都有吸力，从而消除振动。
+        </div>
+
+        <h3 style="font-size:0.95rem;font-weight:800;margin:22px 0 4px;color:var(--text);">吸力特性与反力特性</h3>
+        <p>
+          接触器的可靠吸合，依赖于<strong>电磁吸力特性</strong>与<strong>弹簧反力特性</strong>的良好配合。
+        </p>
+        <ul>
+          <li><strong>吸力特性</strong> — 电磁吸力随气隙变化的曲线。气隙越小，吸力越大</li>
+          <li><strong>反力特性</strong> — 弹簧反力随气隙变化的曲线。气隙越小，反力越大</li>
+          <li><strong>配合原则</strong> — 在全部行程内，吸力特性必须高于反力特性，才能可靠吸合</li>
+          <li><strong>释放原则</strong> — 线圈断电后，反力必须大于剩磁吸力，才能可靠释放</li>
+        </ul>
+
+        <div class="note">
+          <span class="note-title">线圈电流特点</span>
+          线圈通电瞬间，铁芯未闭合，磁路气隙大，磁阻大，电感小，因此<strong>吸合电流较大</strong>（通常是保持电流的 5~10 倍）。
+          铁芯闭合后，气隙几乎为零，磁阻小，电感大，<strong>保持电流较小</strong>。这就是为什么接触器线圈不能长期处于吸合不良状态——会因电流过大而烧毁。
+        </div>
+
+        <h3 style="font-size:0.95rem;font-weight:800;margin:22px 0 4px;color:var(--text);">线圈参数</h3>
+        <table class="param-table">
+          <thead>
+            <tr><th>参数</th><th>典型值</th><th>说明</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>线圈电压（交流）</td><td>AC 36V / 220V / 380V</td><td>常用 AC 220V</td></tr>
+            <tr><td>线圈电压（直流）</td><td>DC 24V / 48V / 110V</td><td>用于直流控制回路</td></tr>
+            <tr><td>吸合电流</td><td>约为保持电流的 5~10 倍</td><td>铁芯未闭合时</td></tr>
+            <tr><td>保持电流</td><td>较小</td><td>铁芯闭合后</td></tr>
+            <tr><td>线圈功率</td><td>几瓦到几十瓦</td><td>取决于接触器容量</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ==================== 灭弧系统 ==================== -->
+    <section class="section" id="section-arc">
+      <div class="glass-card">
+        <div class="section-title">
+          <svg viewBox="0 0 24 24">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            <path d="M12 8v4M12 16h.01"/>
+          </svg>
+          <h2>灭弧系统 · 电弧克星</h2>
+        </div>
+        <p class="section-subtitle">电弧产生 · 栅片灭弧 · 真空灭弧</p>
+
+        <p>
+          当接触器主触点分断大电流电路时，触点间会产生<strong>电弧</strong>。电弧是一种气体放电现象，
+          温度极高（可达数千摄氏度），会烧蚀触点、延长分断时间，甚至引发事故。灭弧系统就是用来快速熄灭电弧的装置。
+        </p>
+
+        <div class="diagram-wrap">
+          <svg viewBox="0 0 420 240" width="100%" style="max-width:420px;">
+            <rect x="80" y="30" width="260" height="180" rx="16" fill="rgba(208,220,236,0.6)" stroke="#a0b8d0" stroke-width="2"/>
+            <text x="210" y="24" text-anchor="middle" font-size="12" font-weight="800" fill="#4a6a8a">灭弧罩</text>
+            <rect x="110" y="55" width="200" height="10" rx="4" fill="#b0c4dc" stroke="#8a9bb0" stroke-width="1.5"/>
+            <rect x="110" y="85" width="200" height="10" rx="4" fill="#b0c4dc" stroke="#8a9bb0" stroke-width="1.5"/>
+            <rect x="110" y="115" width="200" height="10" rx="4" fill="#b0c4dc" stroke="#8a9bb0" stroke-width="1.5"/>
+            <rect x="110" y="145" width="200" height="10" rx="4" fill="#b0c4dc" stroke="#8a9bb0" stroke-width="1.5"/>
+            <rect x="110" y="175" width="200" height="10" rx="4" fill="#b0c4dc" stroke="#8a9bb0" stroke-width="1.5"/>
+            <path d="M150 195 Q170 160 150 130 Q130 100 150 70 Q170 45 150 40"
+                  stroke="#ff6b35" stroke-width="3" fill="none" stroke-linecap="round" opacity="0.85"/>
+            <path d="M270 195 Q250 160 270 130 Q290 100 270 70 Q250 45 270 40"
+                  stroke="#ff6b35" stroke-width="3" fill="none" stroke-linecap="round" opacity="0.85"/>
+            <text x="210" y="128" text-anchor="middle" font-size="10" font-weight="800" fill="#e53935">电弧被栅片切割</text>
+            <circle cx="150" cy="210" r="8" fill="#f9a825" stroke="#b8860b" stroke-width="2"/>
+            <circle cx="270" cy="210" r="8" fill="#f9a825" stroke="#b8860b" stroke-width="2"/>
+          </svg>
+        </div>
+        <p class="diagram-caption">灭弧罩内栅片将长电弧切割成多段短弧</p>
+
+        <h3 style="font-size:0.95rem;font-weight:800;margin:20px 0 4px;color:var(--text);">电弧的产生</h3>
+        <p>
+          触点分断瞬间，触点间距离极小，电场强度极高（可达 10⁶ V/m 以上），
+          阴极表面的电子在强电场作用下逸出，撞击中性气体分子使其电离，形成电弧。
+        </p>
+
+        <div class="note red">
+          <span class="note-title">电弧的危害</span>
+          <ul style="margin:6px 0 0;">
+            <li>烧蚀触点，缩短使用寿命</li>
+            <li>延长电路分断时间，可能引发事故</li>
+            <li>产生电磁干扰和噪声</li>
+            <li>严重时可能导致相间短路</li>
+          </ul>
+        </div>
+
+        <h3 style="font-size:0.95rem;font-weight:800;margin:22px 0 4px;color:var(--text);">灭弧方法</h3>
+
+        <div class="grid">
+          <div class="mini-card">
+            <h4><span class="marker" style="background:var(--orange);"></span>拉长电弧</h4>
+            <p>利用磁场或机械力将电弧拉长，增加散热面积，降低电弧温度，使电弧难以维持。</p>
+          </div>
+          <div class="mini-card">
+            <h4><span class="marker" style="background:var(--blue);"></span>冷却电弧</h4>
+            <p>金属栅片吸收电弧热量，降低电弧温度，使带电粒子复合，电弧熄灭。</p>
+          </div>
+          <div class="mini-card">
+            <h4><span class="marker" style="background:var(--red);"></span>分割电弧</h4>
+            <p>栅片将长电弧分割成多段短弧，每段短弧有阴极压降，总电压不足以维持电弧。</p>
+          </div>
+          <div class="mini-card">
+            <h4><span class="marker" style="background:var(--green);"></span>真空灭弧</h4>
+            <p>真空中气体稀薄，电弧难以维持。真空接触器分断能力强，寿命长，但成本较高。</p>
+          </div>
+        </div>
+
+        <div class="note green">
+          <span class="note-title">栅片灭弧原理</span>
+          金属栅片插入电弧路径后，电弧被切割成多段短弧。每段短弧在阴极和阳极附近都有电压降（约 10~20V），
+          多段叠加后，总电压降可能超过电源电压，电弧无法维持，从而迅速熄灭。同时栅片吸收大量热量，加速电弧冷却。
+        </div>
+
+        <h3 style="font-size:0.95rem;font-weight:800;margin:22px 0 4px;color:var(--text);">灭弧罩结构</h3>
+        <ul>
+          <li><strong>外壳</strong> — 由耐弧塑料或陶瓷制成，绝缘且耐高温</li>
+          <li><strong>栅片组</strong> — 由多片金属片（通常为镀铜钢片）平行排列组成</li>
+          <li><strong>引弧角</strong> — 引导电弧进入栅片区域</li>
+          <li><strong>灭弧室</strong> — 封闭空间，限制电弧扩散</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ==================== 工作原理 ==================== -->
+    <section class="section" id="section-principle">
+      <div class="glass-card">
+        <div class="section-title">
+          <svg viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="3"/>
+            <path d="M12 1v4M12 19v4M4.2 4.2l2.8 2.8M17 17l2.8 2.8M1 12h4M19 12h4M4.2 19.8l2.8-2.8M17 7l2.8-2.8"/>
+          </svg>
+          <h2>工作原理 · 完整流程</h2>
+        </div>
+        <p class="section-subtitle">通电吸合 · 断电释放 · 时序逻辑</p>
+
+        <p>
+          接触器的工作过程分为<strong>通电吸合</strong>和<strong>断电释放</strong>两个阶段。
+          理解这两个阶段中各部件的动作顺序，是掌握接触器工作原理的关键。
+        </p>
+
+        <h3 style="font-size:0.95rem;font-weight:800;margin:20px 0 8px;color:var(--text);">通电吸合过程</h3>
+
+        <div class="flow">
+          <div class="flow-step">
+            <div class="flow-num">1</div>
+            <div class="flow-body">
+              <h4>线圈通电</h4>
+              <p>吸引线圈接入电源，电流通过线圈，产生磁场。</p>
+            </div>
+          </div>
+          <div class="flow-step">
+            <div class="flow-num">2</div>
+            <div class="flow-body">
+              <h4>铁芯磁化</h4>
+              <p>静铁芯被磁场磁化，产生电磁吸力。</p>
+            </div>
+          </div>
+          <div class="flow-step">
+            <div class="flow-num">3</div>
+            <div class="flow-body">
+              <h4>吸引衔铁</h4>
+              <p>电磁吸力克服反作用弹簧的阻力，吸引衔铁向铁芯方向运动。</p>
+            </div>
+          </div>
+          <div class="flow-step">
+            <div class="flow-num">4</div>
+            <div class="flow-body">
+              <h4>触点动作</h4>
+              <p>衔铁带动动触点移动，主触点和辅助触点同步动作。</p>
+            </div>
+          </div>
+          <div class="flow-step green">
+            <div class="flow-num">5</div>
+            <div class="flow-body">
+              <h4>电路接通</h4>
+              <p>主触点闭合，主电路接通；常开辅助触点闭合，常闭辅助触点断开。</p>
+            </div>
+          </div>
+        </div>
+
+        <h3 style="font-size:0.95rem;font-weight:800;margin:22px 0 8px;color:var(--text);">断电释放过程</h3>
+
+        <div class="flow">
+          <div class="flow-step orange">
+            <div class="flow-num">1</div>
+            <div class="flow-body">
+              <h4>线圈断电</h4>
+              <p>线圈电源切断，磁场消失，电磁吸力归零。</p>
+            </div>
+          </div>
+          <div class="flow-step orange">
+            <div class="flow-num">2</div>
+            <div class="flow-body">
+              <h4>弹簧复位</h4>
+              <p>反作用弹簧释放能量，将衔铁拉回初始位置。</p>
+            </div>
+          </div>
+          <div class="flow-step orange">
+            <div class="flow-num">3</div>
+            <div class="flow-body">
+              <h4>触点分断</h4>
+              <p>动触点随衔铁复位，主触点断开，主电路切断。</p>
+            </div>
+          </div>
+          <div class="flow-step orange">
+            <div class="flow-num">4</div>
+            <div class="flow-body">
+              <h4>灭弧</h4>
+              <p>主触点分断时产生电弧，灭弧装置迅速将电弧熄灭。</p>
+            </div>
+          </div>
+          <div class="flow-step orange">
+            <div class="flow-num">5</div>
+            <div class="flow-body">
+              <h4>辅助触点复位</h4>
+              <p>常开辅助触点断开，常闭辅助触点闭合，恢复初始状态。</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="note">
+          <span class="note-title">状态总结</span>
+          <table class="param-table" style="margin:8px 0 0;">
+            <thead>
+              <tr><th>状态</th><th>主触点</th><th>常开 NO</th><th>常闭 NC</th></tr>
+            </thead>
+            <tbody>
+              <tr><td><strong>线圈通电</strong></td><td>闭合</td><td>闭合</td><td>断开</td></tr>
+              <tr><td><strong>线圈断电</strong></td><td>断开</td><td>断开</td><td>闭合</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="note green">
+          <span class="note-title">关键理解</span>
+          接触器的所有触点动作是<strong>同步</strong>的——都由同一个衔铁驱动。
+          因此“线圈通电 → 主触点闭合 + NO 闭合 + NC 断开”是一个整体事件，不可能只发生其中一部分。
+          理解了这一点，就能分析各种控制电路。
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== 答题器 ==================== -->
+    <section class="section" id="section-quiz">
+      <div class="glass-card">
+        <div class="section-title">
+          <svg viewBox="0 0 24 24">
+            <rect x="3" y="3" width="18" height="18" rx="3"/>
+            <path d="M8 8h8M8 12h5M8 16h3"/>
+          </svg>
+          <h2>答题器 · 自测巩固</h2>
+        </div>
+        <p class="section-subtitle">检验你对接触器知识点的掌握程度</p>
+
+        <div id="quizContainer">
+          <div class="quiz-progress">
+            <div class="quiz-progress-bar">
+              <div class="quiz-progress-fill" id="quizProgressFill" style="width: 0%;"></div>
+            </div>
+            <div class="quiz-progress-text" id="quizProgressText">1 / 6</div>
+          </div>
+
+          <div class="quiz-question" id="quizQuestion"></div>
+          <div id="quizOptions"></div>
+          <div class="quiz-feedback" id="quizFeedback"></div>
+
+          <div class="quiz-actions">
+            <button class="quiz-next" id="quizNext">下一题</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ============ 底部 Dock 栏 ============ -->
+  <nav class="glass-dock" id="dock">
+    <div class="dock-item active" data-key="overview">
+      <svg viewBox="0 0 24 24">
+        <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+        <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+      </svg>
+      <span>仿真+概述</span>
+    </div>
+    <div class="dock-item" data-key="main">
+      <svg viewBox="0 0 24 24">
+        <path d="M13 2L4 14h6l-1 8 9-12h-6l1-8z"/>
+      </svg>
+      <span>主触点</span>
+    </div>
+    <div class="dock-item" data-key="aux">
+      <svg viewBox="0 0 24 24">
+        <path d="M4 7h5l2 5h4l2-5h3"/>
+        <path d="M4 17h5l2-5h4l2 5h3"/>
+      </svg>
+      <span>辅助触点</span>
+    </div>
+    <div class="dock-item" data-key="coil">
+      <svg viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="3"/>
+        <path d="M12 2v4M12 18v4M2 12h4M18 12h4"/>
+        <path d="M5.6 5.6l2.8 2.8M15.6 15.6l2.8 2.8M5.6 18.4l2.8-2.8M15.6 8.4l2.8-2.8"/>
+      </svg>
+      <span>电磁系统</span>
+    </div>
+    <div class="dock-item" data-key="arc">
+      <svg viewBox="0 0 24 24">
+        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+        <path d="M12 8v4M12 16h.01"/>
+      </svg>
+      <span>灭弧系统</span>
+    </div>
+    <div class="dock-item" data-key="principle">
+      <svg viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="3"/>
+        <path d="M12 1v4M12 19v4M4.2 4.2l2.8 2.8M17 17l2.8 2.8M1 12h4M19 12h4M4.2 19.8l2.8-2.8M17 7l2.8-2.8"/>
+      </svg>
+      <span>工作原理</span>
+    </div>
+    <div class="dock-item" data-key="quiz">
+      <svg viewBox="0 0 24 24">
+        <rect x="3" y="3" width="18" height="18" rx="3"/>
+        <path d="M8 8h8M8 12h5M8 16h3"/>
+      </svg>
+      <span>答题器</span>
+    </div>
+  </nav>
+
+</div>
+
+<script>
+(function() {
+  'use strict';
+
+  // ============================================================
+  // ============ 仿真部分 =======================================
+  // ============================================================
+  var simCanvas = document.getElementById('simCanvas');
+  var simCtx = simCanvas.getContext('2d');
+  var simStatus = document.getElementById('simStatus');
+
+  // 仿真逻辑尺寸（与 canvas 显示尺寸匹配）
+  var SW = 420;
+  var SH = 620;
+
+  // 仿真状态
+  var simEnergized = false;
+  var simTargetArmature = 0;
+  var simCurrentArmature = 0;
+  var simAutoTimer = 0;
+  var SIM_AUTO_INTERVAL = 4.2;
+  var simLastTime = performance.now();
+  var SIM_ANIM_SPEED = 5.0;
+
+  // 仿真布局参数
+  var S_MAIN_ROW_Y = [70, 130, 190, 250];
+  var S_NO_ROW_Y = 330;
+  var S_NC_ROW_Y = 400;
+  var S_COIL_Y = 520;
+
+  var S_MAIN_GAP = 46;
+  var S_AUX_GAP = 80;
+  var S_OPEN_OFFSET = 24;
+  var S_CLOSED_OFFSET = 0;
+
+  var S_COIL_W = 110;
+  var S_COIL_H = 48;
+  var S_CORE_W = 76;
+  var S_CORE_H = 34;
+
+  // 仿真配色
+  var SC = {
+    iron: '#8a9bb0',
+    ironLight: '#b0c4dc',
+    ironHi: '#d0e0f0',
+    ironDark: '#5a6a80',
+    plastic: '#d8e2f0',
+    plasticLight: '#e8f0fa',
+    main: { base: '#f9a825', light: '#ffd54f', dark: '#b8860b' },
+    no:   { base: '#1e88e5', light: '#90caf9', dark: '#0d47a1' },
+    nc:   { base: '#e53935', light: '#ef9a9a', dark: '#b71c1c' },
+    coil: { base: '#fb8c00', light: '#ffcc80', dark: '#bf360c' },
+    copper: '#bc8f6a',
+    spring: '#90a4ae'
+  };
+
+  function simRoundRect(c, x, y, w, h, r) {
+    c.beginPath();
+    c.moveTo(x + r, y);
+    c.lineTo(x + w - r, y);
+    c.quadraticCurveTo(x + w, y, x + w, y + r);
+    c.lineTo(x + w, y + h - r);
+    c.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+    c.lineTo(x + r, y + h);
+    c.quadraticCurveTo(x, y + h, x, y + h - r);
+    c.lineTo(x, y + r);
+    c.quadraticCurveTo(x, y, x + r, y);
+    c.closePath();
+  }
+
+  function simMetalGrad(c, x, y, w, h, vertical) {
+    var g;
+    if (vertical) g = c.createLinearGradient(x, y, x + w, y);
+    else g = c.createLinearGradient(x, y, x, y + h);
+    g.addColorStop(0, SC.ironLight);
+    g.addColorStop(0.5, SC.iron);
+    g.addColorStop(1, SC.ironDark);
+    return g;
+  }
+
+  function simScrew(c, x, y, r) {
+    c.beginPath();
+    c.arc(x, y, r, 0, Math.PI * 2);
+    c.fillStyle = SC.ironDark;
+    c.fill();
+    c.strokeStyle = SC.ironLight;
+    c.lineWidth = 1.5;
+    c.stroke();
+    c.strokeStyle = SC.ironHi;
+    c.lineWidth = 1.2;
+    c.beginPath();
+    c.moveTo(x - r * 0.5, y); c.lineTo(x + r * 0.5, y);
+    c.moveTo(x, y - r * 0.5); c.lineTo(x, y + r * 0.5);
+    c.stroke();
+  }
+
+  function simDrawStaticContact(c, x, y, color, label) {
+    simScrew(c, x - 22, y + 5, 5);
+    simScrew(c, x + 22, y + 5, 5);
+    c.fillStyle = SC.copper;
+    simRoundRect(c, x - 18, y - 5, 36, 10, 4);
+    c.fill();
+    c.strokeStyle = '#9c7a5a';
+    c.lineWidth = 1.2;
+    simRoundRect(c, x - 18, y - 5, 36, 10, 4);
+    c.stroke();
+    c.beginPath();
+    c.arc(x, y, 8, 0, Math.PI * 2);
+    c.fillStyle = color.base;
+    c.fill();
+    c.strokeStyle = color.dark;
+    c.lineWidth = 1.8;
+    c.stroke();
+    c.beginPath();
+    c.arc(x - 2.5, y - 2.5, 2.2, 0, Math.PI * 2);
+    c.fillStyle = 'rgba(255,255,255,0.7)';
+    c.fill();
+    if (label) {
+      c.font = 'bold 8px "Microsoft YaHei", sans-serif';
+      c.textAlign = 'center';
+      c.textBaseline = 'middle';
+      var tw = c.measureText(label).width;
+      c.fillStyle = 'rgba(255,255,255,0.85)';
+      simRoundRect(c, x - tw/2 - 6, y - 30, tw + 12, 13, 6);
+      c.fill();
+      c.strokeStyle = color.base;
+      c.lineWidth = 1.2;
+      simRoundRect(c, x - tw/2 - 6, y - 30, tw + 12, 13, 6);
+      c.stroke();
+      c.fillStyle = color.dark;
+      c.fillText(label, x, y - 23);
+    }
+  }
+
+  function simDrawMovingContact(c, x, y, color) {
+    c.strokeStyle = SC.copper;
+    c.lineWidth = 3;
+    c.lineCap = 'round';
+    c.beginPath();
+    c.moveTo(x, y + 12);
+    c.lineTo(x, y + 3);
+    c.stroke();
+    c.lineCap = 'butt';
+    c.beginPath();
+    c.arc(x, y, 7, 0, Math.PI * 2);
+    c.fillStyle = color.light;
+    c.fill();
+    c.strokeStyle = color.dark;
+    c.lineWidth = 1.8;
+    c.stroke();
+    c.beginPath();
+    c.arc(x - 2, y - 2, 2.2, 0, Math.PI * 2);
+    c.fillStyle = 'rgba(255,255,255,0.8)';
+    c.fill();
+  }
+
+  function simDrawCoilAssembly(c, cx, cy, isActive) {
+    var w = S_COIL_W, h = S_COIL_H;
+    c.fillStyle = SC.plastic;
+    simRoundRect(c, cx - w/2 - 8, cy - h/2 - 6, w + 16, h + 12, 8);
+    c.fill();
+    c.strokeStyle = SC.plasticLight;
+    c.lineWidth = 1.8;
+    simRoundRect(c, cx - w/2 - 8, cy - h/2 - 6, w + 16, h + 12, 8);
+    c.stroke();
+    var layers = 3;
+    for (var l = 0; l < layers; l++) {
+      var ly = cy - h/2 + l * (h/layers) + (h/layers)/2;
+      var lw = w - l * 6;
+      c.beginPath();
+      c.ellipse(cx, ly, lw/2, h/(layers*2) - 3, 0, 0, Math.PI * 2);
+      if (isActive) {
+        c.fillStyle = 'hsl(30, 95%, ' + (60 + l*4) + '%)';
+      } else {
+        c.fillStyle = 'hsl(28, 60%, ' + (48 - l*4) + '%)';
+      }
+      c.fill();
+      c.strokeStyle = SC.coil.dark;
+      c.lineWidth = 1.2;
+      c.stroke();
+    }
+    c.strokeStyle = SC.copper;
+    c.lineWidth = 2.5;
+    c.beginPath();
+    c.moveTo(cx - w/2 - 8, cy); c.lineTo(cx - w/2 - 28, cy);
+    c.stroke();
+    c.beginPath();
+    c.moveTo(cx + w/2 + 8, cy); c.lineTo(cx + w/2 + 28, cy);
+    c.stroke();
+    simScrew(c, cx - w/2 - 28, cy, 5);
+    simScrew(c, cx + w/2 + 28, cy, 5);
+    c.font = 'bold 8px "Microsoft YaHei", sans-serif';
+    c.textAlign = 'center';
+    c.textBaseline = 'top';
+    c.fillStyle = isActive ? '#bf360c' : SC.coil.dark;
+    c.fillText('COIL', cx, cy + h/2 + 14);
+  }
+
+  function simDrawEECore(c, cx, cy, isActive) {
+    var w = S_CORE_W, h = S_CORE_H;
+    c.fillStyle = simMetalGrad(c, cx - w/2, cy + h/2 - 10, w, 10, false);
+    simRoundRect(c, cx - w/2, cy + h/2 - 10, w, 10, 4);
+    c.fill();
+    c.strokeStyle = SC.ironLight;
+    c.lineWidth = 1.5;
+    simRoundRect(c, cx - w/2, cy + h/2 - 10, w, 10, 4);
+    c.stroke();
+    var pillarW = w / 4;
+    var pillarH = h - 10;
+    var pillarY = cy + h/2 - 10 - pillarH;
+    var xPos = [cx - w/2, cx - pillarW/2, cx + w/2 - pillarW];
+    for (var i = 0; i < xPos.length; i++) {
+      var px = xPos[i];
+      c.fillStyle = simMetalGrad(c, px, pillarY, pillarW, pillarH, true);
+      simRoundRect(c, px, pillarY, pillarW, pillarH, 3);
+      c.fill();
+      c.strokeStyle = SC.ironLight;
+      c.lineWidth = 1.5;
+      simRoundRect(c, px, pillarY, pillarW, pillarH, 3);
+      c.stroke();
+    }
+    if (isActive) {
+      c.beginPath();
+      c.ellipse(cx, pillarY - 2, w/2, 4, 0, 0, Math.PI * 2);
+      c.fillStyle = 'rgba(140,200,255,0.25)';
+      c.fill();
+    }
+  }
+
+  function simDrawArmature(c, cx, cy, isActive) {
+    var w = S_CORE_W + 12, h = 16;
+    c.fillStyle = simMetalGrad(c, cx - w/2, cy - h/2, w, h, true);
+    simRoundRect(c, cx - w/2, cy - h/2, w, h, 5);
+    c.fill();
+    c.strokeStyle = SC.ironHi;
+    c.lineWidth = 2;
+    simRoundRect(c, cx - w/2, cy - h/2, w, h, 5);
+    c.stroke();
+    c.fillStyle = SC.ironLight;
+    simRoundRect(c, cx - w/2 + 8, cy - h/2 - 5, w - 16, 6, 3);
+    c.fill();
+    c.strokeStyle = SC.iron;
+    c.lineWidth = 1.2;
+    simRoundRect(c, cx - w/2 + 8, cy - h/2 - 5, w - 16, 6, 3);
+    c.stroke();
+    if (isActive) {
+      c.beginPath();
+      c.ellipse(cx, cy + h/2 + 3, w/2 - 8, 3.5, 0, 0, Math.PI * 2);
+      c.fillStyle = 'rgba(120,200,255,0.3)';
+      c.fill();
+    }
+  }
+
+  function simDrawSpring(c, x, yTop, yBottom, coils) {
+    c.strokeStyle = SC.spring;
+    c.lineWidth = 2;
+    c.lineCap = 'round';
+    c.beginPath();
+    var height = yBottom - yTop;
+    var step = height / coils;
+    c.moveTo(x, yTop);
+    for (var i = 0; i < coils; i++) {
+      var y1 = yTop + i * step + step * 0.25;
+      var y2 = yTop + i * step + step * 0.75;
+      c.lineTo(x - 8, y1);
+      c.lineTo(x + 8, y2);
+    }
+    c.lineTo(x, yBottom);
+    c.stroke();
+    c.lineCap = 'butt';
+  }
+
+  function simDrawArcChamber(c, x, y, w, h) {
+    c.fillStyle = 'rgba(208,220,236,0.5)';
+    simRoundRect(c, x - w/2, y, w, h, 10);
+    c.fill();
+    c.strokeStyle = 'rgba(160,184,208,0.7)';
+    c.lineWidth = 1.5;
+    simRoundRect(c, x - w/2, y, w, h, 10);
+    c.stroke();
+    c.strokeStyle = 'rgba(160,184,208,0.6)';
+    c.lineWidth = 1.2;
+    var plates = 4;
+    for (var i = 1; i < plates; i++) {
+      var py = y + (h / plates) * i;
+      c.beginPath();
+      c.moveTo(x - w/2 + 10, py);
+      c.lineTo(x + w/2 - 10, py);
+      c.stroke();
+    }
+    c.font = 'bold 8px "Microsoft YaHei", sans-serif';
+    c.textAlign = 'center';
+    c.textBaseline = 'middle';
+    c.fillStyle = '#5a7a9a';
+    c.fillText('灭弧罩', x, y + h/2);
+  }
+
+  function simDrawBeam(c, beamY, leftX, rightX, isMetal) {
+    var beamH = 10;
+    if (isMetal) {
+      c.fillStyle = simMetalGrad(c, leftX, beamY, rightX - leftX, beamH, false);
+    } else {
+      c.fillStyle = SC.plastic;
+    }
+    simRoundRect(c, leftX, beamY, rightX - leftX, beamH, 5);
+    c.fill();
+    c.strokeStyle = isMetal ? SC.ironLight : SC.plasticLight;
+    c.lineWidth = 1.5;
+    simRoundRect(c, leftX, beamY, rightX - leftX, beamH, 5);
+    c.stroke();
+  }
+
+  function simDraw(armatureY) {
+    var c = simCtx;
+    c.clearRect(0, 0, SW, SH);
+
+    // 背景
+    c.fillStyle = 'rgba(255,255,255,0.1)';
+    c.fillRect(0, 0, SW, SH);
+
+    // 分区虚线
+    c.setLineDash([5, 5]);
+    c.strokeStyle = 'rgba(192,208,228,0.5)';
+    c.lineWidth = 1.2;
+    c.beginPath();
+    c.moveTo(20, 295); c.lineTo(SW - 20, 295);
+    c.moveTo(20, 445); c.lineTo(SW - 20, 445);
+    c.stroke();
+    c.setLineDash([]);
+
+    // 分区标签
+    c.font = 'bold 7px "Microsoft YaHei", sans-serif';
+    c.textAlign = 'left';
+    c.textBaseline = 'middle';
+    c.fillStyle = '#8aa8c8';
+    c.fillText('主触点', 24, 300);
+    c.fillText('辅助触点', 24, 450);
+    c.fillText('电磁驱动', 24, 560);
+
+    // 灭弧罩
+    simDrawArcChamber(c, SW/2, 30, 340, 40);
+
+    // 主触点 4 行
+    for (var idx = 0; idx < S_MAIN_ROW_Y.length; idx++) {
+      var rowY = S_MAIN_ROW_Y[idx];
+      var centerX = SW/2;
+      var leftX = centerX - S_MAIN_GAP/2;
+      var rightX = centerX + S_MAIN_GAP/2;
+      var labelL = ['L1','L2','L3','L4'][idx];
+      var labelR = ['T1','T2','T3','T4'][idx];
+
+      simDrawStaticContact(c, leftX, rowY, SC.main, labelL);
+      simDrawStaticContact(c, rightX, rowY, SC.main, labelR);
+
+      var movingY = rowY + armatureY;
+      simDrawMovingContact(c, leftX, movingY, SC.main);
+      simDrawMovingContact(c, rightX, movingY, SC.main);
+
+      var beamY = movingY + 14;
+      simDrawBeam(c, beamY, leftX - 30, rightX + 30, true);
+
+      c.strokeStyle = SC.iron;
+      c.lineWidth = 4;
+      c.lineCap = 'round';
+      c.beginPath();
+      c.moveTo(leftX, movingY + 8);
+      c.lineTo(leftX, beamY);
+      c.stroke();
+      c.beginPath();
+      c.moveTo(rightX, movingY + 8);
+      c.lineTo(rightX, beamY);
+      c.stroke();
+      c.lineCap = 'butt';
+    }
+
+    // NO 行
+    (function() {
+      var centerX = SW/2;
+      var leftX = centerX - S_AUX_GAP/2;
+      var rightX = centerX + S_AUX_GAP/2;
+      simDrawStaticContact(c, leftX, S_NO_ROW_Y, SC.no, 'NO');
+      simDrawStaticContact(c, rightX, S_NO_ROW_Y, SC.no, '');
+      var movingY = S_NO_ROW_Y + armatureY;
+      simDrawMovingContact(c, leftX, movingY, SC.no);
+      simDrawMovingContact(c, rightX, movingY, SC.no);
+      var beamY = movingY + 14;
+      simDrawBeam(c, beamY, leftX - 30, rightX + 30, false);
+      c.strokeStyle = SC.iron;
+      c.lineWidth = 4;
+      c.beginPath();
+      c.moveTo(leftX, movingY + 8); c.lineTo(leftX, beamY);
+      c.stroke();
+      c.beginPath();
+      c.moveTo(rightX, movingY + 8); c.lineTo(rightX, beamY);
+      c.stroke();
+    })();
+
+    // NC 行
+    (function() {
+      var centerX = SW/2;
+      var leftX = centerX - S_AUX_GAP/2;
+      var rightX = centerX + S_AUX_GAP/2;
+      simDrawStaticContact(c, leftX, S_NC_ROW_Y, SC.nc, 'NC');
+      simDrawStaticContact(c, rightX, S_NC_ROW_Y, SC.nc, '');
+      var ncOffset = S_OPEN_OFFSET - armatureY;
+      var movingY = S_NC_ROW_Y + ncOffset;
+      simDrawMovingContact(c, leftX, movingY, SC.nc);
+      simDrawMovingContact(c, rightX, movingY, SC.nc);
+      var beamY = movingY + 14;
+      simDrawBeam(c, beamY, leftX - 30, rightX + 30, false);
+      c.strokeStyle = SC.iron;
+      c.lineWidth = 4;
+      c.beginPath();
+      c.moveTo(leftX, movingY + 8); c.lineTo(leftX, beamY);
+      c.stroke();
+      c.beginPath();
+      c.moveTo(rightX, movingY + 8); c.lineTo(rightX, beamY);
+      c.stroke();
+    })();
+
+    // 电磁驱动
+    var coreTopY = S_COIL_Y - S_CORE_H/2;
+    var armatureYPos = coreTopY - 20 + armatureY * 0.45;
+
+    simDrawEECore(c, SW/2, S_COIL_Y, simEnergized);
+    simDrawArmature(c, SW/2, armatureYPos, simEnergized);
+    simDrawCoilAssembly(c, SW/2, S_COIL_Y, simEnergized);
+
+    // 垂直主杆
+    var fullRodTop = S_NC_ROW_Y + (S_OPEN_OFFSET - armatureY) + 26;
+    var fullRodBottom = armatureYPos - 10;
+    var rodW = 10;
+    var rodX = SW/2 - rodW/2;
+
+    c.fillStyle = simMetalGrad(c, rodX, fullRodTop, rodW, fullRodBottom - fullRodTop, true);
+    simRoundRect(c, rodX, fullRodTop, rodW, fullRodBottom - fullRodTop, 5);
+    c.fill();
+    c.strokeStyle = SC.ironLight;
+    c.lineWidth = 1.5;
+    simRoundRect(c, rodX, fullRodTop, rodW, fullRodBottom - fullRodTop, 5);
+    c.stroke();
+
+    // 连接点
+    var noBeamY = S_NO_ROW_Y + armatureY + 14;
+    c.fillStyle = SC.iron;
+    c.beginPath();
+    c.arc(SW/2, noBeamY + 5, 5, 0, Math.PI * 2);
+    c.fill();
+    var ncBeamY = S_NC_ROW_Y + (S_OPEN_OFFSET - armatureY) + 14;
+    c.beginPath();
+    c.arc(SW/2, ncBeamY + 5, 5, 0, Math.PI * 2);
+    c.fill();
+
+    // 弹簧
+    simDrawSpring(c, SW/2 - 48, armatureYPos + 10, armatureYPos + 44, 4);
+    simDrawSpring(c, SW/2 + 48, armatureYPos + 10, armatureYPos + 44, 4);
+
+    // 状态文字
+    c.font = 'bold 8px "Microsoft YaHei", sans-serif';
+    c.textAlign = 'center';
+    c.textBaseline = 'middle';
+    c.fillStyle = SC.main.dark;
+    c.fillText(simEnergized ? '主触点闭合' : '主触点断开', SW/2, S_MAIN_ROW_Y[0] - 42);
+    c.fillStyle = SC.no.dark;
+    c.fillText(simEnergized ? 'NO闭合' : 'NO断开', SW/2, S_NO_ROW_Y - 42);
+    c.fillStyle = SC.nc.dark;
+    c.fillText(simEnergized ? 'NC断开' : 'NC闭合', SW/2, S_NC_ROW_Y - 42);
+
+    // 火花
+    if (simEnergized && Math.abs(armatureY - S_CLOSED_OFFSET) < 6) {
+      var alpha = 0.5 + 0.5 * Math.sin(performance.now() / 80);
+      for (var i = 0; i < S_MAIN_ROW_Y.length; i++) {
+        var rowY = S_MAIN_ROW_Y[i];
+        var leftX = SW/2 - S_MAIN_GAP/2, rightX = SW/2 + S_MAIN_GAP/2;
+        var xs = [leftX, rightX];
+        for (var k = 0; k < xs.length; k++) {
+          c.beginPath();
+          c.arc(xs[k], rowY + armatureY, 11, 0, Math.PI * 2);
+          c.fillStyle = 'rgba(255,220,100,' + (alpha * 0.25) + ')';
+          c.fill();
+        }
+      }
+    }
+    if (!simEnergized && Math.abs(armatureY - S_OPEN_OFFSET) < 6) {
+      var alpha2 = 0.5 + 0.5 * Math.sin(performance.now() / 80);
+      var ncOffset = S_OPEN_OFFSET - armatureY;
+      var auxXs = [SW/2 - S_AUX_GAP/2, SW/2 + S_AUX_GAP/2];
+      for (var k2 = 0; k2 < auxXs.length; k2++) {
+        c.beginPath();
+        c.arc(auxXs[k2], S_NC_ROW_Y + ncOffset, 10, 0, Math.PI * 2);
+        c.fillStyle = 'rgba(255,120,120,' + (alpha2 * 0.22) + ')';
+        c.fill();
+      }
+    }
+  }
+
+  function simToggleState() {
+    simEnergized = !simEnergized;
+    simTargetArmature = simEnergized ? S_CLOSED_OFFSET : S_OPEN_OFFSET;
+    if (simEnergized) {
+      simStatus.textContent = '线圈通电 · 衔铁吸合 · 触点动作';
+      simStatus.className = 'sim-status on';
+    } else {
+      simStatus.textContent = '线圈断电 · 衔铁释放 · 触点复位';
+      simStatus.className = 'sim-status off';
+    }
+  }
+
+  function simAnimate(now) {
+    var dt = Math.min((now - simLastTime) / 1000, 0.05);
+    simLastTime = now;
+    simAutoTimer += dt;
+    if (simAutoTimer > SIM_AUTO_INTERVAL) {
+      simAutoTimer = 0;
+      simToggleState();
+    }
+    var diff = simTargetArmature - simCurrentArmature;
+    if (Math.abs(diff) > 0.3) {
+      simCurrentArmature += diff * Math.min(1, dt * SIM_ANIM_SPEED);
+    } else {
+      simCurrentArmature = simTargetArmature;
+    }
+    simDraw(simCurrentArmature);
+    requestAnimationFrame(simAnimate);
+  }
+
+  // 初始化仿真
+  simCurrentArmature = S_OPEN_OFFSET;
+  simTargetArmature = S_OPEN_OFFSET;
+  simEnergized = false;
+  simStatus.textContent = '线圈断电 · 衔铁释放 · 触点断开';
+  simStatus.className = 'sim-status off';
+
+  simCanvas.addEventListener('click', function() {
+    simAutoTimer = 0;
+    simToggleState();
+  });
+
+  requestAnimationFrame(simAnimate);
+
+  // ============================================================
+  // ============ 答题器 =======================================
+  // ============================================================
+  var quizData = [
+    {
+      question: '接触器线圈断电时，常开（NO）触点的状态是？',
+      options: ['闭合', '断开', '不确定', '取决于主触点'],
+      answer: 1,
+      explanation: '常开触点的定义就是"线圈未通电时断开"。线圈断电时，NO 触点恢复断开状态。'
+    },
+    {
+      question: '接触器的主触点主要用于什么电路？',
+      options: ['控制电路', '主电路', '信号电路', '照明电路'],
+      answer: 1,
+      explanation: '主触点承载主电路电流，用于接通和断开主电路。辅助触点才用于控制电路。'
+    },
+    {
+      question: '线圈通电后，常闭（NC）触点会怎样？',
+      options: ['保持闭合', '断开', '先闭合后断开', '不确定'],
+      answer: 1,
+      explanation: '常闭触点的定义是"线圈未通电时闭合"。线圈通电后，NC 触点断开。'
+    },
+    {
+      question: '接触器中用于熄灭电弧的部件是？',
+      options: ['弹簧', '衔铁', '灭弧罩', '铁芯'],
+      answer: 2,
+      explanation: '灭弧罩用于熄灭主触点断开时产生的电弧，保护触点并延长使用寿命。'
+    },
+    {
+      question: '交流接触器的铁芯上为什么要加短路环？',
+      options: ['增大电磁吸力', '减小振动和噪声', '防止铁芯生锈', '降低线圈电流'],
+      answer: 1,
+      explanation: '交流电过零时电磁吸力为零，会导致衔铁振动。短路环产生相位差磁通，保证任何时刻都有吸力，从而消除振动和噪声。'
+    },
+    {
+      question: '接触器线圈通电瞬间，电流比保持状态大很多，原因是？',
+      options: ['线圈电阻变小', '铁芯未闭合，磁阻大，电感小', '电源电压升高', '弹簧反力增大'],
+      answer: 1,
+      explanation: '线圈通电瞬间铁芯未闭合，磁路气隙大，磁阻大，电感小，因此电流较大（约为保持电流的 5~10 倍）。铁芯闭合后电流减小。'
+    }
+  ];
+
+  var currentQuiz = 0;
+  var answered = false;
+  var score = 0;
+
+  var quizContainer = document.getElementById('quizContainer');
+  var quizQuestion = document.getElementById('quizQuestion');
+  var quizOptions = document.getElementById('quizOptions');
+  var quizFeedback = document.getElementById('quizFeedback');
+  var quizNext = document.getElementById('quizNext');
+  var quizProgressFill = document.getElementById('quizProgressFill');
+  var quizProgressText = document.getElementById('quizProgressText');
+
+  var optionKeys = ['A', 'B', 'C', 'D'];
+
+  function renderQuiz() {
+    if (currentQuiz >= quizData.length) {
+      renderResult();
+      return;
+    }
+
+    answered = false;
+    var q = quizData[currentQuiz];
+
+    quizProgressFill.style.width = ((currentQuiz) / quizData.length * 100) + '%';
+    quizProgressText.textContent = (currentQuiz + 1) + ' / ' + quizData.length;
+
+    quizQuestion.textContent = q.question;
+
+    var html = '';
+    for (var i = 0; i < q.options.length; i++) {
+      html += '<button class="quiz-option" data-index="' + i + '">' +
+                '<span class="option-key">' + optionKeys[i] + '</span>' +
+                '<span>' + q.options[i] + '</span>' +
+              '</button>';
+    }
+    quizOptions.innerHTML = html;
+
+    quizFeedback.className = 'quiz-feedback';
+    quizFeedback.innerHTML = '';
+    quizNext.className = 'quiz-next';
+
+    var buttons = quizOptions.querySelectorAll('.quiz-option');
+    for (var j = 0; j < buttons.length; j++) {
+      buttons[j].addEventListener('click', handleOptionClick);
+    }
+  }
+
+  function handleOptionClick(e) {
+    if (answered) return;
+    answered = true;
+
+    var btn = e.currentTarget;
+    var idx = parseInt(btn.dataset.index, 10);
+    var q = quizData[currentQuiz];
+    var buttons = quizOptions.querySelectorAll('.quiz-option');
+
+    for (var i = 0; i < buttons.length; i++) {
+      buttons[i].disabled = true;
+      if (i === q.answer) {
+        buttons[i].classList.add('correct');
+      } else if (i === idx) {
+        buttons[i].classList.add('wrong');
+      } else {
+        buttons[i].classList.add('dimmed');
+      }
+    }
+
+    if (idx === q.answer) {
+      score++;
+      quizFeedback.className = 'quiz-feedback correct show';
+      quizFeedback.innerHTML = '<strong>回答正确</strong>' + q.explanation;
+    } else {
+      quizFeedback.className = 'quiz-feedback wrong show';
+      quizFeedback.innerHTML = '<strong>回答错误</strong>正确答案是 ' + optionKeys[q.answer] + '。' + q.explanation;
+    }
+
+    quizNext.className = 'quiz-next show';
+    quizNext.textContent = (currentQuiz === quizData.length - 1) ? '查看结果' : '下一题';
+  }
+
+  function renderResult() {
+    quizProgressFill.style.width = '100%';
+    quizProgressText.textContent = quizData.length + ' / ' + quizData.length;
+
+    var percent = Math.round(score / quizData.length * 100);
+    var msg = '';
+    if (percent === 100) msg = '全部正确，掌握得非常扎实。';
+    else if (percent >= 80) msg = '表现优秀，个别细节可以再巩固。';
+    else if (percent >= 60) msg = '基础尚可，建议回顾错题相关章节。';
+    else msg = '需要加强，建议重新阅读前面的知识点。';
+
+    quizContainer.innerHTML =
+      '<div class="quiz-result">' +
+        '<div class="score">' + percent + '<span style="font-size:1.4rem;">%</span></div>' +
+        '<div class="score-label">答对 ' + score + ' / ' + quizData.length + ' 题</div>' +
+        '<div class="result-msg">' + msg + '</div>' +
+        '<button class="quiz-next show" id="quizRestart" style="margin:0 auto;">重新答题</button>' +
+      '</div>';
+
+    var restartBtn = document.getElementById('quizRestart');
+    if (restartBtn) {
+      restartBtn.addEventListener('click', function() {
+        currentQuiz = 0;
+        score = 0;
+        answered = false;
+        rebuildQuiz();
+      });
+    }
+  }
+
+  function rebuildQuiz() {
+    quizContainer.innerHTML =
+      '<div class="quiz-progress">' +
+        '<div class="quiz-progress-bar">' +
+          '<div class="quiz-progress-fill" id="quizProgressFill" style="width: 0%;"></div>' +
+        '</div>' +
+        '<div class="quiz-progress-text" id="quizProgressText">1 / ' + quizData.length + '</div>' +
+      '</div>' +
+      '<div class="quiz-question" id="quizQuestion"></div>' +
+      '<div id="quizOptions"></div>' +
+      '<div class="quiz-feedback" id="quizFeedback"></div>' +
+      '<div class="quiz-actions">' +
+        '<button class="quiz-next" id="quizNext">下一题</button>' +
+      '</div>';
+
+    quizQuestion = document.getElementById('quizQuestion');
+    quizOptions = document.getElementById('quizOptions');
+    quizFeedback = document.getElementById('quizFeedback');
+    quizNext = document.getElementById('quizNext');
+    quizProgressFill = document.getElementById('quizProgressFill');
+    quizProgressText = document.getElementById('quizProgressText');
+
+    quizNext.addEventListener('click', function() {
+      currentQuiz++;
+      renderQuiz();
+    });
+
+    renderQuiz();
+  }
+
+  // ============================================================
+  // ============ Section 切换 =================================
+  // ============================================================
+  var mainContent = document.getElementById('mainContent');
+  var dockItems = document.querySelectorAll('.dock-item');
+
+  function showSection(key) {
+    var sections = document.querySelectorAll('.section');
+    for (var i = 0; i < sections.length; i++) {
+      sections[i].classList.remove('active');
+    }
+    var target = document.getElementById('section-' + key);
+    if (target) {
+      target.classList.add('active');
+    }
+
+    for (var j = 0; j < dockItems.length; j++) {
+      dockItems[j].classList.remove('active');
+      if (dockItems[j].dataset.key === key) {
+        dockItems[j].classList.add('active');
+      }
+    }
+
+    mainContent.scrollTop = 0;
+
+    if (key === 'quiz') {
+      currentQuiz = 0;
+      score = 0;
+      answered = false;
+      rebuildQuiz();
+    }
+  }
+
+  for (var k = 0; k < dockItems.length; k++) {
+    dockItems[k].addEventListener('click', function() {
+      showSection(this.dataset.key);
+    });
+  }
+
+  // 初始化答题器
+  quizNext.addEventListener('click', function() {
+    currentQuiz++;
+    renderQuiz();
+  });
+
+  renderQuiz();
+
+})();
+</script>
+</body>
+</html>
